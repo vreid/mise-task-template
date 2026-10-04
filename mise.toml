@@ -10,8 +10,12 @@ idiomatic_version_file_enable_tools = ["task", "node", "pnpm"]
 lockfile = true
 
 [tools]
+betterleaks = "latest"
+grype = "latest"
 shellcheck = "latest"
 shfmt = "latest"
+syft = "latest"
+"github:anchore/grant" = "latest"
 
 # Use the complete upstream LLVM distribution, including Clang and Clang++.
 # Exact versions are recorded in mise.lock.

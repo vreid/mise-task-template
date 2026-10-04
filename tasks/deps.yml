@@ -7,6 +7,11 @@ tasks:
       - pnpm install --frozen-lockfile
 
   update:
-    desc: Update dependencies and their manifest and lockfile to latest
+    desc: Update all workspace dependency ranges and the lockfile to latest
+    summary: |
+      Update dependencies, devDependencies, optionalDependencies, and peerDependencies,
+      including major upgrades, in the root project and every workspace package.
+      Keep Node and pnpm major versions in devEngines unchanged.
+      Transitive packages resolve within their parents' declared ranges.
     cmds:
-      - pnpm update --latest
+      - pnpm update --recursive --include-workspace-root --latest --peer

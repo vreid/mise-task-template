@@ -1,0 +1,17 @@
+{{- define "finding"}}
+{{.Artifact.Name}}@{{.Artifact.Version}} - {{.Vulnerability.ID}} ({{.Vulnerability.Severity}})
+{{range .Artifact.Locations}}  {{.RealPath}}
+{{else}}  No file location is available for this package.
+{{end}}{{end -}}
+{{- if .Matches}}
+Dependency locations (paths within the scanned repository):
+{{range .Matches}}{{template "finding" .}}{{end}}
+{{end -}}
+{{- if .IgnoredMatches}}
+Advisory findings (excluded from the failure threshold):
+{{range .IgnoredMatches}}{{template "finding" .Match}}  Fix state: {{.Vulnerability.Fix.State}}
+{{range .AppliedIgnoreRules}}{{if .Reason}}  Reason: {{.Reason}}
+{{end}}{{end}}{{end}}{{end -}}
+{{- if or .Matches .IgnoredMatches}}
+For npm dependency chains, run: mise exec -- pnpm why <package>
+{{end -}}

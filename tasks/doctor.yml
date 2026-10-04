@@ -18,6 +18,10 @@ tasks:
       - pnpm exec markdownlint-cli2 --no-globs
       - shellcheck --version
       - shfmt --version
+      - betterleaks version
+      - syft version
+      - grant version
+      - grype version
       - clang --version
       - clang++ --version
       - llvm-config --version

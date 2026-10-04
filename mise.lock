@@ -2,6 +2,28 @@
 
 lockfile_version = 3
 
+[[tools.betterleaks]]
+version = "1.9.0"
+backend = "aqua:betterleaks/betterleaks"
+specifiers = ["latest"]
+
+[tools.betterleaks."platforms.macos-arm64"]
+checksum = "sha256:83dd7eaab13d44a1e8e347a17064cdef153a1478db473276d41b38d55613d3f2"
+url = "https://github.com/betterleaks/betterleaks/releases/download/v1.9.0/betterleaks_1.9.0_darwin_arm64.tar.gz"
+url_api = "https://api.github.com/repos/betterleaks/betterleaks/releases/assets/599108927"
+provenance = "cosign"
+
+[[tools."github:anchore/grant"]]
+version = "0.6.8"
+backend = "github:anchore/grant"
+specifiers = ["latest"]
+
+[tools."github:anchore/grant"."platforms.macos-arm64"]
+checksum = "sha256:3d8f315f4f27d9efc8fc712ee27f10cd0df64ac794226580ea5346234f2d6806"
+url = "https://github.com/anchore/grant/releases/download/v0.6.8/grant_0.6.8_darwin_arm64.tar.gz"
+url_api = "https://api.github.com/repos/anchore/grant/releases/assets/470622023"
+provenance = "github-attestations"
+
 [[tools."github:llvm/llvm-project"]]
 version = "llvmorg-23.1.2"
 backend = "github:llvm/llvm-project"
@@ -15,6 +37,16 @@ checksum = "sha256:3da0e91b5dfe3a5ec795ad2be79b3f5e6f28c8b23edcd3847fad7742b25e0
 url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-23.1.2/LLVM-23.1.2-macOS-ARM64.tar.zst"
 url_api = "https://api.github.com/repos/llvm/llvm-project/releases/assets/581171424"
 provenance = "github-attestations"
+
+[[tools.grype]]
+version = "0.120.0"
+backend = "aqua:anchore/grype"
+specifiers = ["latest"]
+
+[tools.grype."platforms.macos-arm64"]
+checksum = "sha256:d27d39ba25ba2d2a1d1568219ff159310d2cb54f3cdd5293e5820c5c784f7f11"
+url = "https://github.com/anchore/grype/releases/download/v0.120.0/grype_0.120.0_darwin_arm64.tar.gz"
+url_api = "https://api.github.com/repos/anchore/grype/releases/assets/605770234"
 
 [[tools.node]]
 version = "24.21.0"
@@ -55,6 +87,16 @@ specifiers = ["latest"]
 checksum = "sha256:b7c872db63553ccffc7253aba3ed7d4885a27d83f1ba567b1138c6315a5847e5"
 url = "https://github.com/mvdan/sh/releases/download/v3.14.1/shfmt_v3.14.1_darwin_arm64"
 url_api = "https://api.github.com/repos/mvdan/sh/releases/assets/547320930"
+
+[[tools.syft]]
+version = "1.54.0"
+backend = "aqua:anchore/syft"
+specifiers = ["latest"]
+
+[tools.syft."platforms.macos-arm64"]
+checksum = "sha256:7e0bdad94c569fc6d5785c9a657bbae3d4c4e140ccb5eace3d0b5b6bc2b6dbcf"
+url = "https://github.com/anchore/syft/releases/download/v1.54.0/syft_1.54.0_darwin_arm64.tar.gz"
+url_api = "https://api.github.com/repos/anchore/syft/releases/assets/604117599"
 
 [[tools.task]]
 version = "3.54.0"

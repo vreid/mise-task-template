@@ -1,6 +1,7 @@
 {
   "name": "mise-task-template",
   "private": true,
+  "license": "Unlicense",
   "type": "module",
   "devDependencies": {
     "@commitlint/cli": "^21.2.3",

@@ -7,6 +7,9 @@ tasks:
       - task: :check:lint
       - task: :check:shell
       - task: :check:docs
+      - task: :check:secrets
+      - task: :check:licenses
+      - task: :check:vulnerabilities
       - task: fmt
 
   fmt:

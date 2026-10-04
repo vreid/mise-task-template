@@ -2,16 +2,21 @@ version: "3"
 
 tasks:
   default:
-    desc: Run strict lint and type checks; report formatting differences
+    desc:
+      Run analysis and security checks; report formatting and license findings
     summary: |
       Check all supported repository files without changing them.
-      Lint, type, formatter, and configuration errors fail; formatting differences are advisory.
+      Analysis, secrets, High/Critical vulnerabilities with available fixes, and tool errors fail.
+      Formatting differences and license policy findings are advisory.
       Use task verify to enforce formatting or task fix to apply it.
     cmds:
       - task: fmt
       - task: lint
       - task: shell
       - task: docs
+      - task: secrets
+      - task: licenses
+      - task: vulnerabilities
 
   fmt:
     desc:
@@ -35,6 +40,36 @@ tasks:
     desc: Check Markdown structure and content with markdownlint
     cmds:
       - pnpm exec markdownlint-cli2
+
+  secrets:
+    desc: Scan the working tree for secrets with Betterleaks
+    cmds:
+      - betterleaks dir . --redact=100 --validation=false --no-banner
+
+  secrets:history:
+    desc: Scan all locally available Git history for secrets
+    cmds:
+      - betterleaks git . --log-opts=--all --redact=100 --validation=false
+        --no-banner
+
+  licenses:
+    desc: Inventory the repository with Syft and warn about OSI policy findings
+    cmds:
+      - bash scripts/check-licenses.sh
+
+  vulnerabilities:
+    desc: Scan with Grype; fail on High/Critical findings with available fixes
+    cmds:
+      - bash scripts/check-vulnerabilities.sh
+
+  audit:
+    desc: Audit npm dependencies for High/Critical vulnerabilities on demand
+    summary: |
+      Run pnpm audit with dependency paths and patched versions.
+      This optional diagnostic is not included in check, verify, or maintenance.
+      Findings can return nonzero even when no fix is published.
+    cmds:
+      - pnpm audit --audit-level high
 
   commit:
     desc: Validate a Conventional Commit message (MESSAGE_FILE=path)

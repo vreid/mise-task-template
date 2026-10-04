@@ -1,0 +1,19 @@
+check-for-app-update: false
+
+# Include installed packages, lockfiles, binaries, and every supported ecosystem.
+default-catalogers: [all]
+select-catalogers: [-deprecated]
+exclude: ["**/.git/**"]
+
+package:
+  search-unindexed-archives: true
+
+# Lockfiles and embedded Go modules often omit license text. These lookups use
+# public package registries and Syft's local cache; see docs/security.md.
+enrich: [all]
+golang:
+  use-packages-lib: false
+  # Let Grype distinguish vulnerable functions present in embedded Go binaries.
+  capture-symbols: all
+javascript:
+  include-dev-dependencies: true

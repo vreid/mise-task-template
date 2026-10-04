@@ -1,0 +1,25 @@
+check-for-app-update: false
+
+# Fail on High/Critical findings with published fixes; keep others visible.
+fail-on-severity: high
+only-fixed: true
+show-suppressed: true
+
+ignore:
+  # Revisit when TypeScript publishes a rebuilt compiler. This rule stops matching
+  # when the compiler version, embedded module version, or advisory changes.
+  - vulnerability: GO-2026-5970
+    package:
+      name: golang.org/x/text
+      version: v0.38.0
+      type: go-module
+      location: /node_modules/.pnpm/@typescript+typescript-*@7.0.2/node_modules/@typescript/typescript-*/lib/tsc*
+    reason: >-
+      Embedded in TypeScript 7.0.2, the latest stable release checked
+      2026-10-04. pnpm cannot replace a Go module compiled into this binary;
+      awaiting a TypeScript release containing the fix. Review during
+      maintenance.
+
+# Keep the summary table and show the files/binaries behind each finding.
+output: [table, template]
+output-template-file: templates/grype-locations.tmpl
