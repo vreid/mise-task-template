@@ -12,6 +12,7 @@ lockfile = true
 [tools]
 betterleaks = "latest"
 grype = "latest"
+ruff = "latest"
 shellcheck = "latest"
 shfmt = "latest"
 syft = "latest"

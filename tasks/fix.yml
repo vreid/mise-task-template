@@ -9,6 +9,7 @@ tasks:
       - defer: { task: ":fmt" }
       - task: lint
       - task: shell
+      - task: python
       - task: docs
 
   lint:
@@ -20,6 +21,11 @@ tasks:
     desc: Apply ShellCheck fixes; fail on remaining shell issues
     cmds:
       - bash scripts/fix-shell.sh
+
+  python:
+    desc: Apply safe Ruff fixes; fail on remaining Python lint errors
+    cmds:
+      - ruff check --config .ruff.toml --fix --no-unsafe-fixes .
 
   docs:
     desc: Apply markdownlint fixes; fail on remaining Markdown issues

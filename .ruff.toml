@@ -1,0 +1,37 @@
+line-length = 80
+indent-width = 4
+extend-include = ["*.pyw"]
+extend-exclude = ["build", "coverage"]
+
+[lint]
+# Enable all stable rules. mise.lock makes rule changes reviewable on updates.
+select = ["ALL"]
+ignore = [
+  # Standalone scripts do not need to be Python packages.
+  "INP001",
+  # Ruff's formatter owns layout, quotes, and line wrapping.
+  "COM812",
+  "COM819",
+  "D203",
+  "D206",
+  "D300",
+  "E111",
+  "E114",
+  "E117",
+  "E501",
+  "Q000",
+  "Q001",
+  "Q002",
+  "Q003",
+  "Q004",
+  "W191",
+]
+
+[lint.pydocstyle]
+convention = "google"
+
+[format]
+# Oxfmt owns Markdown; Ruff formats Python code and Python docstrings.
+exclude = ["*.md"]
+docstring-code-format = true
+line-ending = "lf"

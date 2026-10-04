@@ -7,6 +7,9 @@ insert_final_newline = true
 indent_style = space
 indent_size = 2
 
+[*.{py,pyi,pyw}]
+indent_size = 4
+
 # shfmt uses these exclusions for both formatting and shell-file discovery.
 [**/{.git,node_modules,dist,build,coverage}/**]
 ignore = true

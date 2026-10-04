@@ -6,6 +6,7 @@ tasks:
     cmds:
       - task: files
       - task: shell
+      - task: python
 
   files:
     desc: Format Oxfmt-supported files until formatting is stable
@@ -20,3 +21,8 @@ tasks:
     desc: Format repository shell scripts with shfmt
     cmds:
       - shfmt -w .
+
+  python:
+    desc: Format Python files, stubs, notebooks, and docstring code with Ruff
+    cmds:
+      - ruff format --config .ruff.toml .

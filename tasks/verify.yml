@@ -6,6 +6,7 @@ tasks:
     cmds:
       - task: :check:lint
       - task: :check:shell
+      - task: :check:python
       - task: :check:docs
       - task: :check:secrets
       - task: :check:licenses
@@ -17,3 +18,4 @@ tasks:
     cmds:
       - pnpm exec oxfmt --check .
       - shfmt -d .
+      - ruff format --config .ruff.toml --check .
