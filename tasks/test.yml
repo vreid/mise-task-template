@@ -1,0 +1,61 @@
+version: "3"
+
+tasks:
+  default:
+    desc: Test all seven word-count examples
+    cmds:
+      - task: typescript
+      - task: csharp
+      - task: c
+      - task: cpp
+      - task: go
+      - task: rust
+      - task: python
+
+  typescript:
+    desc: Run the TypeScript tests with Node's test runner
+    cmds:
+      - node --test examples/typescript/test/*.test.ts
+
+  csharp:
+    desc: Run the C# test executable
+    cmds:
+      - dotnet run --project examples/csharp/tests/WordCount.Tests.csproj
+        --no-restore
+
+  c:
+    desc: Build and run the C test executable
+    cmds:
+      - mkdir -p build/c
+      - >-
+        clang -std=c17 -Wall -Wextra -Wpedantic -Werror
+        examples/c/src/word_count.c examples/c/tests/word_count_test.c -o
+        build/c/word-count-test
+      - ./build/c/word-count-test
+
+  cpp:
+    desc: Build and run the C++ test executable
+    cmds:
+      - mkdir -p build/cpp
+      - >-
+        clang++ -std=c++20 -Wall -Wextra -Wpedantic -Werror
+        examples/cpp/src/word_count.cpp examples/cpp/tests/word_count_test.cpp
+        -o build/cpp/word-count-test
+      - ./build/cpp/word-count-test
+
+  go:
+    desc: Run the Go tests without reusing cached test results
+    dir: examples/go
+    cmds:
+      - go test -mod=readonly -count=1 ./...
+
+  rust:
+    desc: Run the Rust unit tests and doc tests
+    dir: examples/rust
+    cmds:
+      - cargo test --locked
+
+  python:
+    desc: Run the Python doc tests
+    cmds:
+      - python -m doctest -v examples/python/word_count.py

@@ -1,3 +1,6 @@
+packages:
+  - examples/typescript
+
 # Allow Lefthook's hook-installation script.
 allowBuilds:
   lefthook: true

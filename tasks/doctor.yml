@@ -10,6 +10,11 @@ tasks:
       - task --version
       - node --version
       - pnpm --version
+      - dotnet --version
+      - go version
+      - rustc --version
+      - cargo --version
+      - python --version
       - pnpm exec lefthook version
       - pnpm exec oxfmt --version
       - pnpm exec oxlint --version

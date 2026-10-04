@@ -4,7 +4,8 @@
 It does not require a Python project, `pyproject.toml`, virtual environment, or
 installed Python interpreter. mise installs its standalone binary, with the
 version pinned in `mise.lock`; setup and maintenance manage it like the other
-tools. No Python dependencies or runtime are added to this template.
+tools. The runnable example separately uses Python from `.python-version` and
+`mise.lock`, with standard-library doc tests and no third-party dependencies.
 
 | Task                | Behavior                                                                  |
 | ------------------- | ------------------------------------------------------------------------- |

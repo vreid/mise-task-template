@@ -7,14 +7,25 @@ tasks:
     summary: |
       Update mise tools within their declared version ranges and all workspace dependencies to latest.
       Include dependency major upgrades while preserving the Node and pnpm major versions.
+      Refresh exact .NET and Rust runtime pins within their selected major versions.
       Refresh the OSI-approved license list from SPDX.
       Restore tools, dependencies, and Git hooks, then run doctor, fix, and verify.
-      Review formatting, package.json, both lockfiles, and .grant.yaml before committing.
+      Review formatting, native version files, manifests, lockfiles, and .grant.yaml before committing.
     cmds:
+      - task: runtimes
       - task: :tools:update
       # Reload tool versions after updating before running the remaining tasks.
       - mise exec -- task maintenance:deps maintenance:licenses setup doctor fix
         verify
+
+  runtimes:
+    desc: Refresh native .NET and Rust version pins through mise
+    summary: |
+      Update global.json and rust-toolchain.toml to the latest releases within their selected majors.
+      Run task tools:update afterward to refresh mise.lock and install the new versions.
+      The full maintenance task performs both steps in order.
+    cmds:
+      - node scripts/update-runtime-versions.mts
 
   deps:
     desc: Update all package.json dependency versions, including major upgrades

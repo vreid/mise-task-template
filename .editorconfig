@@ -10,6 +10,13 @@ indent_size = 2
 [*.{py,pyi,pyw}]
 indent_size = 4
 
+[*.{c,h,cpp,hpp,cs,rs}]
+indent_size = 4
+
+[*.go]
+indent_style = tab
+indent_size = 8
+
 # shfmt uses these exclusions for both formatting and shell-file discovery.
-[**/{.git,node_modules,dist,build,coverage}/**]
+[**/{.git,node_modules,dist,build,coverage,target,bin,obj}/**]
 ignore = true

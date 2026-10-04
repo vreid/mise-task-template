@@ -1,0 +1,46 @@
+version: "3"
+
+tasks:
+  default:
+    desc: Build the compiled examples (TypeScript and Python run directly)
+    cmds:
+      - task: c
+      - task: cpp
+      - task: csharp
+      - task: go
+      - task: rust
+
+  c:
+    desc: Build the C word-count CLI
+    cmds:
+      - mkdir -p build/c
+      - >-
+        clang -std=c17 -Wall -Wextra -Wpedantic -Werror
+        examples/c/src/word_count.c examples/c/src/main.c -o build/c/word-count
+
+  cpp:
+    desc: Build the C++ word-count CLI
+    cmds:
+      - mkdir -p build/cpp
+      - >-
+        clang++ -std=c++20 -Wall -Wextra -Wpedantic -Werror
+        examples/cpp/src/word_count.cpp examples/cpp/src/main.cpp -o
+        build/cpp/word-count
+
+  csharp:
+    desc: Build the C# word-count CLI
+    cmds:
+      - dotnet build examples/csharp/src/WordCount.csproj --no-restore
+
+  go:
+    desc: Build the Go word-count CLI
+    dir: examples/go
+    cmds:
+      - mkdir -p ../../build/go
+      - go build -mod=readonly -o ../../build/go/word-count ./cmd/word-count
+
+  rust:
+    desc: Build the Rust word-count CLI
+    dir: examples/rust
+    cmds:
+      - cargo build --locked

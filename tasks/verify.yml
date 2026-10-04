@@ -2,8 +2,9 @@ version: "3"
 
 tasks:
   default:
-    desc: Run the required validation gate, including strict formatting
+    desc: Build, check, and test all examples, including strict formatting
     cmds:
+      - task: :build
       - task: :check:lint
       - task: :check:shell
       - task: :check:python
@@ -12,6 +13,7 @@ tasks:
       - task: :check:licenses
       - task: :check:vulnerabilities
       - task: fmt
+      - task: :test
 
   fmt:
     desc: Require consistent formatting across all supported files

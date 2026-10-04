@@ -13,6 +13,11 @@ url = "https://github.com/betterleaks/betterleaks/releases/download/v1.9.0/bette
 url_api = "https://api.github.com/repos/betterleaks/betterleaks/releases/assets/599108927"
 provenance = "cosign"
 
+[[tools.dotnet]]
+version = "10.0.401"
+backend = "core:dotnet"
+specifiers = ["10.0.401"]
+
 [[tools."github:anchore/grant"]]
 version = "0.6.8"
 backend = "github:anchore/grant"
@@ -37,6 +42,18 @@ checksum = "sha256:3da0e91b5dfe3a5ec795ad2be79b3f5e6f28c8b23edcd3847fad7742b25e0
 url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-23.1.2/LLVM-23.1.2-macOS-ARM64.tar.zst"
 url_api = "https://api.github.com/repos/llvm/llvm-project/releases/assets/581171424"
 provenance = "github-attestations"
+
+[[tools.go]]
+version = "1.27.1"
+backend = "core:go"
+specifiers = [
+    "1",
+    "1.27",
+]
+
+[tools.go."platforms.macos-arm64"]
+checksum = "sha256:ee215d57e0ec269c60cc9ceca68e6bda321ba9ee5afe24f4b0988703c2d87d12"
+url = "https://dl.google.com/go/go1.27.1.darwin-arm64.tar.gz"
 
 [[tools.grype]]
 version = "0.120.0"
@@ -68,6 +85,19 @@ url = "https://github.com/pnpm/pnpm/releases/download/v12.9.0/pnpm-darwin-arm64.
 url_api = "https://api.github.com/repos/pnpm/pnpm/releases/assets/606603785"
 provenance = "github-attestations"
 
+[[tools.python]]
+version = "3.14.8"
+backend = "core:python"
+specifiers = [
+    "3",
+    "3.14",
+]
+
+[tools.python."platforms.macos-arm64"]
+checksum = "sha256:ed14e9042f36c0aa18383f5d9729bcbf17847e842666a793b5a5a5d8505c0ca1"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20261003/cpython-3.14.8+20261003-aarch64-apple-darwin-install_only_stripped.tar.gz"
+provenance = "github-attestations"
+
 [[tools.ruff]]
 version = "0.16.10"
 backend = "aqua:astral-sh/ruff"
@@ -78,6 +108,14 @@ checksum = "sha256:f051cd306de2691262a0574f8857cd1f4d6bfcd448084ea23d61b9c1c37df
 url = "https://github.com/astral-sh/ruff/releases/download/0.16.10/ruff-aarch64-apple-darwin.tar.gz"
 url_api = "https://api.github.com/repos/astral-sh/ruff/releases/assets/603826852"
 provenance = "github-attestations"
+
+[[tools.rust]]
+version = "1.99.0"
+backend = "core:rust"
+specifiers = ["1.99.0"]
+
+[tools.rust.options]
+profile = "minimal"
 
 [[tools.shellcheck]]
 version = "0.11.0"

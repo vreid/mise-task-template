@@ -5,8 +5,18 @@ min_version = "2026.10.0"
 [settings]
 # Keep project tools ahead of system installations on PATH.
 activate_aggressive = true
-# Task uses Taskfile.yml; Node and pnpm use package.json.
-idiomatic_version_file_enable_tools = ["task", "node", "pnpm"]
+# Runtime versions come from the native version files at the project root.
+idiomatic_version_file_enable_tools = [
+  "task",
+  "node",
+  "pnpm",
+  "dotnet",
+  "go",
+  "rust",
+  "python",
+]
+# go.mod declares compatibility; .go-version selects the development compiler.
+idiomatic_version_file_disable_files = ["go:go.mod"]
 lockfile = true
 
 [tools]

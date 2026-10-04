@@ -1,2 +1,8 @@
 node_modules/
 .ruff_cache/
+build/
+target/
+__pycache__/
+*.pyc
+examples/csharp/**/bin/
+examples/csharp/**/obj/

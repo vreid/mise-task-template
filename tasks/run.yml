@@ -1,0 +1,59 @@
+version: "3"
+
+vars:
+  TEXT: hello world
+
+env:
+  EXAMPLE_TEXT: "{{.TEXT}}"
+
+tasks:
+  default:
+    desc: Run all examples with TEXT (default hello world)
+    cmds:
+      - task: typescript
+      - task: csharp
+      - task: c
+      - task: cpp
+      - task: go
+      - task: rust
+      - task: python
+
+  typescript:
+    desc: Run the TypeScript example with TEXT
+    cmds:
+      - node examples/typescript/src/main.ts "$EXAMPLE_TEXT"
+
+  csharp:
+    desc: Run the C# example with TEXT
+    cmds:
+      - dotnet run --project examples/csharp/src/WordCount.csproj --no-restore
+        -- "$EXAMPLE_TEXT"
+
+  c:
+    desc: Build and run the C example with TEXT
+    cmds:
+      - task: :build:c
+      - ./build/c/word-count "$EXAMPLE_TEXT"
+
+  cpp:
+    desc: Build and run the C++ example with TEXT
+    cmds:
+      - task: :build:cpp
+      - ./build/cpp/word-count "$EXAMPLE_TEXT"
+
+  go:
+    desc: Run the Go example with TEXT
+    dir: examples/go
+    cmds:
+      - go run -mod=readonly ./cmd/word-count "$EXAMPLE_TEXT"
+
+  rust:
+    desc: Run the Rust example with TEXT
+    dir: examples/rust
+    cmds:
+      - cargo run --locked --quiet -- "$EXAMPLE_TEXT"
+
+  python:
+    desc: Run the Python example with TEXT
+    cmds:
+      - python examples/python/word_count.py "$EXAMPLE_TEXT"

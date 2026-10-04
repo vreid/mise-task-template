@@ -5,9 +5,12 @@ env:
   CXX: clang++
   SDKROOT:
     sh: bash scripts/sdkroot.sh
+  GOTOOLCHAIN: local
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  DOTNET_NOLOGO: "1"
 
 # Each included default task is available as its verb, for example: task check.
-# Includes share the project root as their working directory.
+# Includes use the project root unless a task sets dir.
 includes:
   help: ./tasks/help.yml
   setup: ./tasks/setup.yml
@@ -19,6 +22,9 @@ includes:
   maintenance: ./tasks/maintenance.yml
   tools: ./tasks/tools.yml
   doctor: ./tasks/doctor.yml
+  build: ./tasks/build.yml
+  test: ./tasks/test.yml
+  run: ./tasks/run.yml
 
 tasks:
   default:

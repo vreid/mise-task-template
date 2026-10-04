@@ -2,9 +2,28 @@ version: "3"
 
 tasks:
   default:
-    desc: Restore dependencies from pnpm-lock.yaml
+    desc: Restore Node, .NET, and Rust dependencies from committed locks
+    cmds:
+      - task: node
+      - task: csharp
+      - task: rust
+
+  node:
+    desc: Restore workspace dependencies from pnpm-lock.yaml
     cmds:
       - pnpm install --frozen-lockfile
+
+  csharp:
+    desc: Restore the C# projects from their NuGet locks
+    cmds:
+      - dotnet restore examples/csharp/tests/WordCount.Tests.csproj
+        --locked-mode
+
+  rust:
+    desc: Fetch Rust dependencies from Cargo.lock
+    dir: examples/rust
+    cmds:
+      - cargo fetch --locked
 
   update:
     desc: Update all workspace dependency ranges and the lockfile to latest
