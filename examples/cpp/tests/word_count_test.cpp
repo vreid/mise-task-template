@@ -6,7 +6,8 @@
 #include <string_view>
 #include <utility>
 
-int main() {
+// Stream output can throw in some standard libraries; fail instead of escaping.
+int main() try {
   constexpr std::array<std::pair<std::string_view, std::size_t>, 7> cases{{
       {"", 0},
       {" \t\n\r\v\f", 0},
@@ -25,4 +26,6 @@ int main() {
   }
   std::cout << "C++: " << cases.size() << " cases passed\n";
   return std::cout ? 0 : 1;
+} catch (...) {
+  return 1;
 }
