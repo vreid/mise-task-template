@@ -1,0 +1,6 @@
+# Allow Lefthook's hook-installation script.
+allowBuilds:
+  lefthook: true
+
+# Restore dependencies through task deps, including when package.json needs fixing.
+verifyDepsBeforeRun: false

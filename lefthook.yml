@@ -1,0 +1,6 @@
+lefthook: mise exec -- pnpm exec lefthook
+
+pre-commit:
+  jobs:
+    - name: check
+      run: mise exec -- task check

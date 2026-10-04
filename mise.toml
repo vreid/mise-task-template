@@ -1,10 +1,12 @@
-# Bootstrap: mise trust && mise install --locked
+# Bootstrap: mise trust && mise install --locked && mise exec -- task setup
 # Run tasks: mise exec -- task
 min_version = "2026.10.0"
 
 [settings]
-# Task reads its version from Taskfile.yml. LLVM has no idiomatic version file.
-idiomatic_version_file_enable_tools = ["task"]
+# Keep project tools ahead of system installations on PATH.
+activate_aggressive = true
+# Task uses Taskfile.yml; Node and pnpm use package.json.
+idiomatic_version_file_enable_tools = ["task", "node", "pnpm"]
 lockfile = true
 
 [tools]
