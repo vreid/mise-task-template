@@ -20,6 +20,10 @@ available commands. The current tool lock targets macOS ARM64; macOS builds
 require Xcode or the Command Line Tools for the system SDK. Additional platforms
 need their own mise lock entries and validation.
 
+In VS Code, open the repository folder and select **Tasks: Run Task**, then
+**task check**. This runs `mise exec -- task check` from the repository root and
+shows results in the task terminal. mise must be available on VS Code's PATH.
+
 ## Commands
 
 | Command                              | Purpose                                                                       |
