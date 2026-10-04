@@ -20,6 +20,39 @@ ignore:
       awaiting a TypeScript release containing the fix. Review during
       maintenance.
 
+  # Windows only: Syft records no Go function symbols for PE binaries, so Grype
+  # matches every standard library advisory at module granularity. Linux and
+  # macOS match the same TypeScript 7.0.2 compiler (go1.26.4) by function and
+  # report none of these High advisories; none of them is Windows-specific.
+  - vulnerability: GO-2026-4970
+    package: &windows-tsc
+      name: stdlib
+      version: go1.26.4
+      type: go-module
+      location: /node_modules/.pnpm/@typescript+typescript-win32-*@7.0.2/node_modules/@typescript/typescript-win32-*/lib/tsc.exe
+    reason: &windows-tsc-reason >-
+      Windows build of TypeScript 7.0.2's compiler, which has no symbols for
+      function-level matching. Linux and macOS clear this advisory for the same
+      release by function. Remove after upgrading TypeScript.
+  - vulnerability: GO-2026-5026
+    package: *windows-tsc
+    reason: *windows-tsc-reason
+  - vulnerability: GO-2026-5942
+    package: *windows-tsc
+    reason: *windows-tsc-reason
+  - vulnerability: GO-2026-5972
+    package: *windows-tsc
+    reason: *windows-tsc-reason
+  - vulnerability: GO-2026-6088
+    package: *windows-tsc
+    reason: *windows-tsc-reason
+  - vulnerability: GO-2026-6089
+    package: *windows-tsc
+    reason: *windows-tsc-reason
+  - vulnerability: GO-2026-6090
+    package: *windows-tsc
+    reason: *windows-tsc-reason
+
 # Keep the summary table and show the files/binaries behind each finding.
 output: [table, template]
 output-template-file: templates/grype-locations.tmpl
