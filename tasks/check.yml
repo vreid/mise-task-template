@@ -6,8 +6,9 @@ tasks:
       Run analysis and security checks; report formatting and license findings
     summary: |
       Check all supported repository files without changing them.
-      Lint, type checks, SAST, secrets, fixable High/Critical vulnerabilities, and tool errors fail.
+      Lint, type checks, SAST, suppressions without a rule or reason, secrets, fixable High/Critical vulnerabilities, and tool errors fail.
       Formatting, license policy findings, and C/C++ compiler warnings are advisory.
+      SBOMs, complexity metrics, and the suppression register are written to reports/.
       Use task verify to enforce formatting or task fix to apply it.
     cmds:
       - task: fmt
