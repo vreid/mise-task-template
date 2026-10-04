@@ -115,8 +115,11 @@ tasks:
 
   secrets:
     desc: Scan the working tree for secrets with Betterleaks
+    # Inline allow comments carry no rule or reason; accept findings by
+    # fingerprint with a reason in .betterleaksignore instead.
     cmds:
       - betterleaks dir . --redact=100 --validation=false --no-banner
+        --ignore-gitleaks-allow
 
   sast:
     desc: Test the Opengrep rules and reject matching source vulnerabilities
@@ -125,10 +128,21 @@ tasks:
       - bash scripts/check-sast.sh
 
   secrets:history:
-    desc: Scan all locally available Git history for secrets
+    desc:
+      Scan Git history for secrets (HISTORY=git log range, default HEAD; --all
+      for every local ref)
+    vars:
+      HISTORY: '{{.HISTORY | default "HEAD"}}'
+    env:
+      HISTORY_RANGE: "{{.HISTORY}}"
+    preconditions:
+      - sh: test "$(git rev-parse --is-shallow-repository)" = false
+        msg:
+          A shallow clone hides older commits. Run git fetch --unshallow, or
+          check out with fetch-depth 0.
     cmds:
-      - betterleaks git . --log-opts=--all --redact=100 --validation=false
-        --no-banner
+      - betterleaks git . --log-opts="$HISTORY_RANGE" --redact=100
+        --validation=false --no-banner --ignore-gitleaks-allow
 
   sbom:
     desc: Inventory the repository with Syft and write SBOMs to reports/
