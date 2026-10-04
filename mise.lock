@@ -29,6 +29,16 @@ url = "https://github.com/anchore/grant/releases/download/v0.6.8/grant_0.6.8_dar
 url_api = "https://api.github.com/repos/anchore/grant/releases/assets/470622023"
 provenance = "github-attestations"
 
+[[tools."github:boyter/scc"]]
+version = "4.1.0"
+backend = "github:boyter/scc"
+specifiers = ["latest"]
+
+[tools."github:boyter/scc"."platforms.macos-arm64"]
+checksum = "sha256:7201c7aa4aace058d43308462cba72adb18f6094c08c0741727455976d0a0747"
+url = "https://github.com/boyter/scc/releases/download/v4.1.0/scc_Darwin_arm64.tar.gz"
+url_api = "https://api.github.com/repos/boyter/scc/releases/assets/549478883"
+
 [[tools."github:llvm/llvm-project"]]
 version = "llvmorg-23.1.2"
 backend = "github:llvm/llvm-project"
@@ -95,6 +105,12 @@ checksum = "sha256:12d792463ed8f30cc80e6de4035c37d0d0d78ba57dfb27d8e82bf0fd24d98
 url = "https://github.com/pnpm/pnpm/releases/download/v12.9.0/pnpm-darwin-arm64.tar.gz"
 url_api = "https://api.github.com/repos/pnpm/pnpm/releases/assets/606603785"
 provenance = "github-attestations"
+
+[[tools."pypi:lizard"]]
+version = "1.24.0"
+backend = "pypi:lizard"
+specifiers = ["latest"]
+uv = { path = ".mise/locks/pypi-lizard/1.24.0", digest = "sha256:da1f2efd3a93350878abc437489a912dd9e965b1382e6e3b9735ea67e8961ac4" }
 
 [[tools.python]]
 version = "3.14.8"
@@ -168,3 +184,14 @@ specifiers = ["3"]
 checksum = "sha256:12a69fcf37bb8d5bc9150c44f9a936775b73e59ff044c2c245232f198c135637"
 url = "https://github.com/go-task/task/releases/download/v3.54.0/task_darwin_arm64.tar.gz"
 url_api = "https://api.github.com/repos/go-task/task/releases/assets/604090068"
+
+[[tools.uv]]
+version = "0.12.22"
+backend = "aqua:astral-sh/uv"
+specifiers = ["latest"]
+
+[tools.uv."platforms.macos-arm64"]
+checksum = "sha256:5d714de09501a59393ceca78f4bc232a50478729640d251907160299b2a93ddd"
+url = "https://github.com/astral-sh/uv/releases/download/0.12.22/uv-aarch64-apple-darwin.tar.gz"
+url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/604418308"
+provenance = "github-attestations"

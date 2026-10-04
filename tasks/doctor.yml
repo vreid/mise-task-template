@@ -27,6 +27,9 @@ tasks:
       - shellcheck --version
       - shfmt --version
       - ruff --version
+      - uv --version
+      - scc --version
+      - lizard --version
       - betterleaks version
       - syft version
       - grant version

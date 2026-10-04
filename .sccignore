@@ -1,0 +1,7 @@
+# Generated policy inventories and dependency locks are not source code.
+.clang-warnings.json
+.grant.yaml
+.mise/locks/
+mise.lock
+**/packages.lock.json
+**/uv.lock

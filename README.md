@@ -57,4 +57,5 @@ Each example owns its code and project files. The root owns tool selection, task
 orchestration, hooks, and shared policies. Details:
 [examples and tool versions](docs/examples.md), [Python checks](docs/python.md),
 [language checks](docs/language-checks.md), [C/C++ checks](docs/c-cpp.md), and
-[security checks](docs/security.md).
+[security checks](docs/security.md). Repository size and maintainability checks
+are described in [code metrics](docs/code-metrics.md).

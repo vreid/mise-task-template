@@ -27,7 +27,11 @@ ruff = "latest"
 shellcheck = "latest"
 shfmt = "latest"
 syft = "latest"
+uv = "latest"
 "github:anchore/grant" = "latest"
+"github:boyter/scc" = "latest"
+# Isolated CLI environment; mise locks Lizard and its Python dependencies.
+"pypi:lizard" = "latest"
 
 # Use the complete upstream LLVM distribution, including Clang and Clang++.
 # Exact versions are recorded in mise.lock.

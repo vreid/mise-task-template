@@ -12,6 +12,7 @@ tasks:
     cmds:
       - task: fmt
       - task: lint
+      - task: metrics
       - task: shell
       - task: docs
       - task: secrets
@@ -41,6 +42,23 @@ tasks:
       - task: python
       - task: c
       - task: cpp
+
+  metrics:
+    desc: Report repository size and require maintainable code complexity
+    cmds:
+      - task: scc
+      - task: lizard
+
+  scc:
+    desc: Report file sizes and estimated complexity, highest first per language
+    cmds:
+      - scc --no-config --no-cocomo --no-size --by-file --wide --sort complexity
+        --ci .
+
+  lizard:
+    desc: Require strict function complexity, size, and parameter limits
+    cmds:
+      - bash scripts/check-complexity.sh
 
   typescript:
     desc: Run strict Oxlint and TypeScript checks across the repository

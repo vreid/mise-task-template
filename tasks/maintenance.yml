@@ -9,8 +9,9 @@ tasks:
       Include dependency major upgrades while preserving the Node and pnpm major versions.
       Refresh exact .NET and Rust runtime pins within their selected major versions.
       Refresh the OSI-approved license list from SPDX.
+      Refresh mise's native dependency locks for Python CLI tools.
       Restore tools, dependencies, and Git hooks, then run doctor, fix, and verify.
-      Review formatting, native version files, manifests, lockfiles, and .grant.yaml before committing.
+      Review formatting, native version files, manifests, lockfiles (including .mise/locks), and .grant.yaml before committing.
     cmds:
       - task: runtimes
       - task: :tools:update

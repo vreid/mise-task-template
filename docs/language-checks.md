@@ -13,6 +13,10 @@ formatting; `task fix` also applies supported analyzer fixes and checks for
 remaining issues. The full `check`, `verify`, `fix`, pre-commit, and maintenance
 flows include the corresponding language tasks.
 
+`task check:metrics` additionally reports repository size with scc and enforces
+function complexity, size, and parameter limits with Lizard. Both `check` and
+`verify` include it; see [code metrics](code-metrics.md).
+
 | Language   | Analysis                                               | Formatting                                  | Automatic fixes                       |
 | ---------- | ------------------------------------------------------ | ------------------------------------------- | ------------------------------------- |
 | TypeScript | Oxlint, including type-aware lint and type checking    | Oxfmt                                       | Oxlint's safe fixes                   |

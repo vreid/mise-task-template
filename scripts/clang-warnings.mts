@@ -38,39 +38,51 @@ function compile(command: string, strict: boolean) {
   return result;
 }
 
+function warningName(diagnostic: unknown): string | undefined {
+  assert.ok(isRecord(diagnostic));
+  const id = diagnostic["ruleId"];
+  assert.ok(typeof id === "string" && /^[A-Za-z_]/u.test(id));
+  return diagnostic["level"] === "warning" ? id : undefined;
+}
+
+function reportWarning(id: string): boolean {
+  const adopted = required.has(id);
+  console.error(`${adopted ? "Required" : "Advisory new"} warning: ${id}`);
+  return adopted;
+}
+
+function classifyWarnings(stderr: string) {
+  const start = stderr.indexOf("{");
+  const end = stderr.lastIndexOf("}");
+  assert.ok(start >= 0 && end >= start, stderr);
+  const report: unknown = JSON.parse(stderr.slice(start, end + 1));
+  assert.ok(isRecord(report) && report["version"] === "2.1.0");
+  assert.ok(Array.isArray(report["runs"]));
+  let failed = false;
+  let warnings = 0;
+  const runs: unknown[] = report["runs"];
+  const diagnostics = runs.flatMap((run: unknown): unknown[] => {
+    assert.ok(isRecord(run) && Array.isArray(run["results"]));
+    return run["results"];
+  });
+  for (const diagnostic of diagnostics) {
+    const id = warningName(diagnostic);
+    if (id !== undefined) {
+      warnings += 1;
+      const adopted = reportWarning(id);
+      failed ||= adopted;
+    }
+  }
+  return { failed, warnings };
+}
+
 // Keep the normal successful path at one -Werror compile. On failure, rerun
 // without promotion to distinguish genuine errors from newly introduced warnings.
 // SARIF's symbolic ruleId avoids unstable numeric diagnostic IDs / warning groups.
 const strict = compile(compiler, true);
 if (strict.status !== 0) {
   const advisory = compile(compiler, false);
-  const start = advisory.stderr.indexOf("{");
-  const end = advisory.stderr.lastIndexOf("}");
-  assert.ok(start >= 0 && end >= start, advisory.stderr);
-  const report: unknown = JSON.parse(advisory.stderr.slice(start, end + 1));
-  assert.ok(isRecord(report) && report["version"] === "2.1.0");
-  assert.ok(Array.isArray(report["runs"]));
-  let failed = advisory.status !== 0;
-  let warnings = 0;
-  const runs: unknown[] = report["runs"];
-  for (const run of runs) {
-    assert.ok(isRecord(run) && Array.isArray(run["results"]));
-    const diagnostics: unknown[] = run["results"];
-    for (const diagnostic of diagnostics) {
-      assert.ok(isRecord(diagnostic));
-      const id = diagnostic["ruleId"];
-      const level = diagnostic["level"];
-      assert.ok(typeof id === "string" && /^[A-Za-z_]/u.test(id));
-      if (level === "warning") {
-        warnings += 1;
-        const adopted = required.has(id);
-        failed ||= adopted;
-        console.error(
-          `${adopted ? "Required" : "Advisory new"} warning: ${id}`,
-        );
-      }
-    }
-  }
+  const classification = classifyWarnings(advisory.stderr);
   // Print native diagnostics (including source snippets and notes), not raw JSON.
   const display = spawnSync(
     compiler,
@@ -81,7 +93,8 @@ if (strict.status !== 0) {
   );
   if (display.error !== undefined) throw display.error;
   assert.equal(display.signal, null);
-  failed ||= display.status !== 0;
+  const failed =
+    classification.failed || advisory.status !== 0 || display.status !== 0;
   // A strict failure with no corresponding warnings is not safe to downgrade.
-  process.exitCode = failed || warnings === 0 ? 1 : 0;
+  process.exitCode = failed || classification.warnings === 0 ? 1 : 0;
 }

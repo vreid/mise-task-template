@@ -1,6 +1,9 @@
 node_modules/
 .ruff_cache/
 build/
+dist/
+coverage/
+.venv/
 target/
 __pycache__/
 *.pyc

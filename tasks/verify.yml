@@ -6,6 +6,7 @@ tasks:
     cmds:
       - task: :build
       - task: lint
+      - task: :check:metrics
       - task: :check:shell
       - task: :check:docs
       - task: :check:secrets
