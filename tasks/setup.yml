@@ -1,0 +1,14 @@
+version: "3"
+
+tasks:
+  default:
+    desc: Restore pinned tools, dependencies, and Git hooks
+    cmds:
+      - task: :tools:install
+      # Reload tool versions after installation before running the remaining tasks.
+      - mise exec -- task deps setup:hooks
+
+  hooks:
+    desc: Install or refresh Git hooks
+    cmds:
+      - pnpm exec lefthook install

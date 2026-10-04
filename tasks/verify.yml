@@ -1,0 +1,16 @@
+version: "3"
+
+tasks:
+  default:
+    desc: Run the required validation gate, including strict formatting
+    cmds:
+      - task: :check:lint
+      - task: :check:shell
+      - task: :check:docs
+      - task: fmt
+
+  fmt:
+    desc: Require consistent formatting across all supported files
+    cmds:
+      - pnpm exec oxfmt --check .
+      - shfmt -d .

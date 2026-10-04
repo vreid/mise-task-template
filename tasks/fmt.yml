@@ -1,0 +1,22 @@
+version: "3"
+
+tasks:
+  default:
+    desc: Format all supported source, configuration, and documentation files
+    cmds:
+      - task: files
+      - task: shell
+
+  files:
+    desc: Format Oxfmt-supported files until formatting is stable
+    silent: true
+    summary: |
+      Format the repository until no further formatting changes are needed.
+      Fail if formatting does not stabilize within five passes.
+    cmds:
+      - bash scripts/fmt-files.sh
+
+  shell:
+    desc: Format repository shell scripts with shfmt
+    cmds:
+      - shfmt -w .

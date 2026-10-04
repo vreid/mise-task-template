@@ -1,0 +1,23 @@
+version: "3"
+
+tasks:
+  default:
+    desc: Show the selected tool versions
+    summary: |
+      After bootstrap, run mise exec -- task doctor.
+      Checks that the tools execute without installing or repairing them.
+    cmds:
+      - task --version
+      - node --version
+      - pnpm --version
+      - pnpm exec lefthook version
+      - pnpm exec oxfmt --version
+      - pnpm exec oxlint --version
+      - pnpm exec commitlint --version
+      # Print markdownlint's version banner without selecting files to lint.
+      - pnpm exec markdownlint-cli2 --no-globs
+      - shellcheck --version
+      - shfmt --version
+      - clang --version
+      - clang++ --version
+      - llvm-config --version

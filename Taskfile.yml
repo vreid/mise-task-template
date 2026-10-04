@@ -3,176 +3,24 @@ version: "3"
 env:
   CC: clang
   CXX: clang++
-  # Preserve an explicit SDK; otherwise use Xcode or the Command Line Tools on macOS.
   SDKROOT:
-    sh: |
-      if [ -n "$SDKROOT" ]; then
-        printf '%s' "$SDKROOT"
-      elif [ '{{OS}}' = 'darwin' ]; then
-        xcrun --show-sdk-path
-      fi
+    sh: bash scripts/sdkroot.sh
+
+# Each included default task is available as its verb, for example: task check.
+# Includes share the project root as their working directory.
+includes:
+  help: ./tasks/help.yml
+  setup: ./tasks/setup.yml
+  deps: ./tasks/deps.yml
+  check: ./tasks/check.yml
+  verify: ./tasks/verify.yml
+  fmt: ./tasks/fmt.yml
+  fix: ./tasks/fix.yml
+  maintenance: ./tasks/maintenance.yml
+  tools: ./tasks/tools.yml
+  doctor: ./tasks/doctor.yml
 
 tasks:
   default:
     cmds:
       - task: help
-
-  help:
-    desc: List available tasks
-    cmds:
-      - task --list
-
-  setup:
-    desc: Restore pinned tools, dependencies, and Git hooks
-    cmds:
-      - task: tools:install
-      # Reload tool versions after installation before running the remaining tasks.
-      - mise exec -- task deps setup:hooks
-
-  setup:hooks:
-    desc: Install or refresh Git hooks
-    cmds:
-      - pnpm exec lefthook install
-
-  deps:
-    desc: Restore dependencies from pnpm-lock.yaml
-    cmds:
-      - pnpm install --frozen-lockfile
-
-  deps:update:
-    desc: Update dependencies and their manifest and lockfile to latest
-    cmds:
-      - pnpm update --latest
-
-  check:
-    desc: Run strict lint and type checks; report formatting differences
-    summary: |
-      Check all supported repository files without changing them.
-      Lint, type, formatter, and configuration errors fail; formatting differences are advisory.
-      Use task verify to enforce formatting or task fix to apply it.
-    cmds:
-      - task: check:fmt
-      - task: check:lint
-
-  check:fmt:
-    desc:
-      Report formatting differences; fail on formatter or configuration errors
-    silent: true
-    cmds:
-      - |
-        format_status=0
-        format_output=$(pnpm exec oxfmt --check .) || format_status=$?
-        printf '%s\n' "$format_output"
-        # Oxfmt also uses exit code 1 for configuration errors.
-        # Only its completed formatting-difference report is advisory.
-        case "$format_status:$format_output" in
-          1:*"Format issues found in above "*) echo "Run task fix to apply formatting." ;;
-          *) exit "$format_status" ;;
-        esac
-
-  check:lint:
-    desc: Run strict Oxlint rules and TypeScript checks together
-    cmds:
-      - pnpm exec oxlint .
-
-  check:commit:
-    desc: Validate a Conventional Commit message (MESSAGE_FILE=path)
-    requires:
-      vars: [MESSAGE_FILE]
-    env:
-      COMMIT_MESSAGE_FILE: "{{.MESSAGE_FILE}}"
-    cmds:
-      - pnpm exec commitlint --edit "$COMMIT_MESSAGE_FILE"
-
-  verify:fmt:
-    desc: Require consistent formatting across all supported files
-    cmds:
-      - pnpm exec oxfmt --check .
-
-  verify:
-    desc: Run the required validation gate, including strict formatting
-    cmds:
-      - task: check:lint
-      - task: verify:fmt
-
-  fmt:
-    desc: Format all supported source, configuration, and documentation files
-    cmds:
-      - task: fmt:files
-
-  fmt:files:
-    desc: Format supported files until formatting is stable
-    silent: true
-    summary: |
-      Format the repository until no further formatting changes are needed.
-      Fail if formatting does not stabilize within five passes.
-    cmds:
-      - |
-        for iteration in 1 2 3 4 5; do
-          printf 'Formatting pass %s/5\n' "$iteration"
-          pnpm exec oxfmt --write . || exit "$?"
-          format_status=0
-          pnpm exec oxfmt --check . || format_status=$?
-          case "$format_status" in
-            0) exit 0 ;;
-            1) ;;
-            *) exit "$format_status" ;;
-          esac
-        done
-        echo "Formatting did not stabilize after five passes." >&2
-        exit 1
-
-  fix:
-    desc: Apply formatting and safe lint fixes
-    cmds:
-      - task: fmt
-      # Format any lint fixes even when unfixed lint or type errors remain.
-      - defer: { task: fmt }
-      - task: fix:lint
-
-  fix:lint:
-    desc: Apply safe Oxlint fixes; fail on remaining lint or type errors
-    cmds:
-      - pnpm exec oxlint --fix .
-
-  maintenance:
-    desc: Update tools and dependencies, apply fixes, and verify
-    summary: |
-      Update mise tools within their declared version ranges and pnpm dependencies to latest.
-      Restore tools, dependencies, and Git hooks, then run doctor, fix, and verify.
-      Review formatting, package.json, and both lockfiles before committing.
-    cmds:
-      - task: tools:update
-      # Reload tool versions after updating before running the remaining tasks.
-      - mise exec -- task deps:update setup doctor fix verify
-
-  tools:install:
-    desc: Install tools from mise.lock
-    cmds:
-      - mise install --locked
-
-  tools:update:
-    desc: Update and install the latest pinned project tools
-    summary: |
-      Update mise.lock to the latest versions allowed by the tool declarations, then install them.
-      Review the lockfile changes before committing.
-    cmds:
-      - mise lock --bump
-      - task: tools:install
-
-  doctor:
-    desc: Show the selected tool versions
-    summary: |
-      After bootstrap, run mise exec -- task doctor.
-      Checks that the tools execute without installing or repairing them.
-    cmds:
-      - task --version
-      - node --version
-      - pnpm --version
-      - pnpm exec lefthook version
-      - pnpm exec oxfmt --version
-      - pnpm exec oxlint --version
-      - pnpm exec commitlint --version
-      - clang --version
-      - clang++ --version
-      - llvm-config --version

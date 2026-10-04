@@ -1,0 +1,27 @@
+version: "3"
+
+tasks:
+  default:
+    desc: Apply formatting and safe lint fixes
+    cmds:
+      - task: :fmt
+      # Format any lint fixes even when unfixed lint or type errors remain.
+      - defer: { task: ":fmt" }
+      - task: lint
+      - task: shell
+      - task: docs
+
+  lint:
+    desc: Apply safe Oxlint fixes; fail on remaining lint or type errors
+    cmds:
+      - pnpm exec oxlint --fix .
+
+  shell:
+    desc: Apply ShellCheck fixes; fail on remaining shell issues
+    cmds:
+      - bash scripts/fix-shell.sh
+
+  docs:
+    desc: Apply markdownlint fixes; fail on remaining Markdown issues
+    cmds:
+      - pnpm exec markdownlint-cli2 --fix

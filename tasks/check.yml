@@ -1,0 +1,46 @@
+version: "3"
+
+tasks:
+  default:
+    desc: Run strict lint and type checks; report formatting differences
+    summary: |
+      Check all supported repository files without changing them.
+      Lint, type, formatter, and configuration errors fail; formatting differences are advisory.
+      Use task verify to enforce formatting or task fix to apply it.
+    cmds:
+      - task: fmt
+      - task: lint
+      - task: shell
+      - task: docs
+
+  fmt:
+    desc:
+      Report formatting differences; fail on formatter or configuration errors
+    silent: true
+    cmds:
+      - bash scripts/check-fmt.sh
+      - bash scripts/check-fmt-shell.sh
+
+  lint:
+    desc: Run strict Oxlint rules and TypeScript checks together
+    cmds:
+      - pnpm exec oxlint .
+
+  shell:
+    desc: Check repository shell scripts with ShellCheck
+    cmds:
+      - bash scripts/shellcheck.sh
+
+  docs:
+    desc: Check Markdown structure and content with markdownlint
+    cmds:
+      - pnpm exec markdownlint-cli2
+
+  commit:
+    desc: Validate a Conventional Commit message (MESSAGE_FILE=path)
+    requires:
+      vars: [MESSAGE_FILE]
+    env:
+      COMMIT_MESSAGE_FILE: "{{.MESSAGE_FILE}}"
+    cmds:
+      - pnpm exec commitlint --edit "$COMMIT_MESSAGE_FILE"

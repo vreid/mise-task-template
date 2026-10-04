@@ -1,0 +1,16 @@
+version: "3"
+
+tasks:
+  install:
+    desc: Install tools from mise.lock
+    cmds:
+      - mise install --locked
+
+  update:
+    desc: Update and install the latest pinned project tools
+    summary: |
+      Update mise.lock to the latest versions allowed by the tool declarations, then install them.
+      Review the lockfile changes before committing.
+    cmds:
+      - mise lock --bump
+      - task: install

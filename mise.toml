@@ -10,6 +10,9 @@ idiomatic_version_file_enable_tools = ["task", "node", "pnpm"]
 lockfile = true
 
 [tools]
+shellcheck = "latest"
+shfmt = "latest"
+
 # Use the complete upstream LLVM distribution, including Clang and Clang++.
 # Exact versions are recorded in mise.lock.
 "github:llvm/llvm-project" = { version = "latest", matching = ".tar.zst" }

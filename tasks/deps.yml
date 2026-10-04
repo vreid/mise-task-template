@@ -1,0 +1,12 @@
+version: "3"
+
+tasks:
+  default:
+    desc: Restore dependencies from pnpm-lock.yaml
+    cmds:
+      - pnpm install --frozen-lockfile
+
+  update:
+    desc: Update dependencies and their manifest and lockfile to latest
+    cmds:
+      - pnpm update --latest

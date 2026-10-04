@@ -1,0 +1,13 @@
+version: "3"
+
+tasks:
+  default:
+    desc: Update tools and dependencies, apply fixes, and verify
+    summary: |
+      Update mise tools within their declared version ranges and pnpm dependencies to latest.
+      Restore tools, dependencies, and Git hooks, then run doctor, fix, and verify.
+      Review formatting, package.json, and both lockfiles before committing.
+    cmds:
+      - task: :tools:update
+      # Reload tool versions after updating before running the remaining tasks.
+      - mise exec -- task deps:update setup doctor fix verify
