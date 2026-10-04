@@ -88,7 +88,9 @@ orchestration, hooks, and shared policies. Details:
 Repository size and maintainability checks are described in
 [code metrics](docs/code-metrics.md). Generated outputs are described in
 [analysis reports](docs/reports.md), and the rules for inline exceptions in
-[suppressions](docs/suppressions.md).
+[suppressions](docs/suppressions.md). Why the next security budget should go to
+an AI coding harness rather than GHAS is argued in
+[security spend](docs/security-spend.md).
 
 The [requirements handover](docs/requirements-handover.md) records the agreed
 PoC scope, requirement coverage, remaining work, and validation evidence for an
