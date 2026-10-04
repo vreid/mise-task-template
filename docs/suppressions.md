@@ -61,10 +61,12 @@ even when it reports problems, so a failed run keeps its evidence.
 
 `reports/suppressions.json` records the analyzed commit as `revision`. For each
 suppression it records the tool, file, line, rules, reason, problems, and the
-commit, author, and date that last changed the line according to `git blame`.
-Lines without a commit yet have null attribution. CI checks out full history, so
-attribution is exact there. See [analysis reports](reports.md) for how reports
-are expected to leave the repository.
+commit that last changed the line according to `git blame`; lines without a
+commit yet record null. It records no names or dates: the commit leads to its
+author in Git, and to its pull request and reviewers once changes go through
+pull requests, so the archived register holds no personal data. CI checks out
+full history, so attribution is exact there. See [analysis reports](reports.md)
+for how reports are expected to leave the repository.
 
 ## Accepting secret findings
 
@@ -84,11 +86,14 @@ history.
 
 ## Exemptions in configuration
 
-Some exemptions live in versioned configuration instead of source comments. Git
-history and code review record them: Grype `ignore` rules with a `reason` in
-`.grype.yaml`, Ruff's `per-file-ignores`, the explicit check lists in
-`.clang-tidy` and `.golangci.yml`, `.editorconfig` severities, `.semgrepignore`,
-and the Syft exclusions. The register does not list them.
+Some exemptions live in versioned configuration instead of source comments:
+Grype `ignore` rules with a `reason` in `.grype.yaml`, Betterleaks'
+`security/betterleaks.toml`, Ruff's `per-file-ignores`, the explicit check lists
+in `.clang-tidy` and `.golangci.yml`, `.editorconfig` severities,
+`.semgrepignore`, and the Syft exclusions. The register does not list them; Git
+history records them, and only required review on `main` keeps them from
+changing unnoticed. Betterleaks takes its configuration explicitly, so a
+`.betterleaks.toml` or `.gitleaks.toml` dropped into the repository is ignored.
 
 ## Maintenance
 

@@ -9,23 +9,23 @@ Opengrep also checks application source for command injection in all seven
 languages. See the [source security proof of concept](sast.md) for its rules,
 positive and negative fixtures, and OWASP/CWE coverage limits.
 
-| Task                         | Behavior                                                                                           |
-| ---------------------------- | -------------------------------------------------------------------------------------------------- |
-| `task check:secrets`         | Scan the working tree for secrets with Betterleaks; inline allow comments are ignored.             |
-| `task check:sast`            | Test local Opengrep rules, then fail on matching source vulnerabilities.                           |
-| `task check:secrets:history` | Scan Git history reachable from `HEAD` (`HISTORY=--all` for every ref); `verify` runs it.          |
-| `task check:sbom`            | Inventory the repository with Syft and write CycloneDX and SPDX SBOMs to `reports/`.               |
-| `task check:licenses`        | Evaluate the repository SBOM with Grant and warn about policy findings.                            |
-| `task check:vulnerabilities` | Scan the SBOM with Grype; fail on High/Critical findings with fixes, subject to scoped exceptions. |
-| `task check:audit`           | On-demand pnpm audit for High/Critical npm vulnerabilities, including dependency paths.            |
-| `task check`                 | Run analysis and security checks; formatting and license findings are advisory.                    |
-| `task verify`                | Run the same checks and require correct formatting; licenses remain advisory.                      |
-| `task maintenance:licenses`  | Refresh the checked-in OSI license policy from SPDX.                                               |
-| `task maintenance:deps`      | Update all package.json dependency groups to latest stable releases, including major upgrades.     |
-| `task maintenance`           | Update tools, dependencies, and the license policy, then fix and verify.                           |
+| Task                         | Behavior                                                                                         |
+| ---------------------------- | ------------------------------------------------------------------------------------------------ |
+| `task check:secrets`         | Scan the working tree for secrets with Betterleaks; inline allow comments are ignored.           |
+| `task check:sast`            | Test local Opengrep rules, then fail on matching source vulnerabilities.                         |
+| `task check:secrets:history` | Scan Git history reachable from `HEAD` (`HISTORY=--all` for every ref); `verify` runs it.        |
+| `task check:sbom`            | Inventory the repository with Syft and write CycloneDX and SPDX SBOMs to `reports/`.             |
+| `task check:licenses`        | Evaluate the repository SBOM with Grant and warn about policy findings.                          |
+| `task check:vulnerabilities` | Scan the SBOM with Grype; fail on High/Critical findings unless accepted with a recorded reason. |
+| `task check:audit`           | On-demand pnpm audit for High/Critical npm vulnerabilities, including dependency paths.          |
+| `task check`                 | Run analysis and security checks; formatting and license findings are advisory.                  |
+| `task verify`                | Run the same checks and require correct formatting; licenses remain advisory.                    |
+| `task maintenance:licenses`  | Refresh the checked-in OSI license policy from SPDX.                                             |
+| `task maintenance:deps`      | Update all package.json dependency groups to latest stable releases, including major upgrades.   |
+| `task maintenance`           | Update tools, dependencies, and the license policy, then fix and verify.                         |
 
-The pre-commit hook runs `task check`, so secrets and unsuppressed High or
-Critical vulnerabilities with published fixes block a commit. License findings
+The pre-commit hook runs `task check`, so secrets and High or Critical
+vulnerabilities without a recorded acceptance block a commit. License findings
 currently warn without blocking. `task fix` fixes formatting and lint issues; it
 does not remove secrets, change dependency licenses, or upgrade vulnerable
 packages. Run `task verify` afterwards.
@@ -73,6 +73,9 @@ binary formats are skipped. Matching secrets are redacted, and live credential
 validation is explicitly disabled. Scanning does not contact providers to test
 credentials.
 
+Both scans pass `security/betterleaks.toml`, which keeps Betterleaks' built-in
+rules unchanged. Because the configuration is explicit, a `.betterleaks.toml` or
+`.gitleaks.toml` dropped into the repository cannot quietly allowlist findings.
 Inline `betterleaks:allow` and `gitleaks:allow` comments are ignored because
 they name neither a rule nor a reason. Accept a finding by adding its
 fingerprint, with a reason, to `.betterleaksignore`; see
@@ -134,19 +137,19 @@ such as `CC0-1.0` is also denied if SPDX does not mark it OSI-approved.
 
 [Grype](https://github.com/anchore/grype) checks a fresh Syft inventory using
 the same `.syft.yaml` coverage settings as the license check. `.grype.yaml` sets
-the failure threshold to `high`, which includes Critical vulnerabilities.
-`only-fixed: true` limits failures to findings with published fixes.
-`show-suppressed: true` keeps findings without fixes visible as advisory
-results, with their locations and fix states. Lower severity findings also
-remain visible without failing. Grype also treats `wont-fix` and `unknown` fix
-states as suppressed under this policy.
+the failure threshold to `high`, which includes Critical vulnerabilities. Every
+such finding fails, whether or not a fix is published: an unfixed High is
+accepted only by an explicit `ignore` rule with a reason. Such a rule also sets
+`fix-state: not-fixed`, so it stops applying once a fix ships and the gate fails
+until the dependency is updated. `show-suppressed: true` keeps accepted findings
+visible with their locations, fix states, and reasons. Lower severity findings
+remain visible without failing.
 
 Grype knows whether a fix exists for a package; it cannot determine whether a
 parent package has shipped a rebuilt binary containing that fix. For these
 cases, use a narrow, documented exception tied to the advisory, package version,
 and binary location. Review exceptions during maintenance. Transitive
-dependencies with available fixes still fail unless an explicit exception
-applies.
+dependencies fail like direct ones unless an explicit exception applies.
 
 Grype downloads and caches its vulnerability database, checking for updates
 during scans. Its default database integrity and age checks remain enabled;
@@ -245,8 +248,11 @@ advisory, for different reasons:
 - `braces@3.0.3`
   ([GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm)) has
   no published fix. `pnpm audit` and `pnpm why` both trace it through
-  `markdownlint-cli2`, via `micromatch` and sometimes `globby`/`fast-glob`.
-  Grype's fix-availability policy handles this without a package exemption.
+  `markdownlint-cli2`, via `micromatch` and sometimes `globby`/`fast-glob`. The
+  advisory describes stack exhaustion from deeply nested glob patterns, and
+  markdownlint-cli2 only receives patterns from repository configuration, so the
+  worst case is a failed lint run. `.grype.yaml` accepts it with that reason
+  while no fix exists; a fixed release makes the gate fail again.
 - `golang.org/x/text@v0.38.0` ([GO-2026-5970](https://go.dev/issue/80142)) has a
   module-level fix in `v0.39.0`, but is compiled into TypeScript 7.0.2's `tsc`.
   TypeScript 7.0.2 was still the latest stable npm release on 2026-10-04. The

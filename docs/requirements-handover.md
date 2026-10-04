@@ -49,30 +49,30 @@ The following scope decisions were explicitly agreed:
 the capability within its documented scope. It does not imply universal
 detection, a successful run on every platform, or completed central reporting.
 
-| Requirement                                | Current coverage and remaining qualification                                                                                                                                                                                                             |
-| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Scan source for vulnerabilities            | Opengrep command-injection rules exist for all seven languages. Compiler and language security checks add other signals. The SAST rules deliberately cover a narrow example.                                                                             |
-| OWASP Top 10 and CWE Top 25                | The demo maps command injection to OWASP Top 10:2025 A05 and CWE-78 from the 2025 CWE Top 25. Full-list coverage is not claimed or required to demonstrate the mechanism.                                                                                |
-| Classify findings by severity              | Grype has vulnerability severities. Opengrep rules carry `ERROR` severity and `HIGH` impact metadata. Cross-tool normalization into a shared high/medium/low model remains report-integration work.                                                      |
-| Archivable reports tied to a version       | `check` writes CycloneDX and SPDX SBOMs, a complexity CSV, and the suppression register to `reports/`, with a version label. Another system is assumed to ingest them; upload, retention, and a full manifest are missing.                               |
-| Prefer one tool across supported languages | Task provides a common CLI over several engines. This is the accepted design. Opengrep, Syft, scc, and Lizard each cover multiple languages or ecosystems.                                                                                               |
-| Dependency CVEs                            | Syft and Grype inventory the repository and gate fixable High/Critical findings, with narrow documented exceptions for Go code compiled into TypeScript's compiler. Detection depends on package metadata and supported matchers.                        |
-| Linting                                    | Configured for every example language, shell helpers, Markdown, and GitHub Actions. Python lint and annotations are covered; Python type checking is not implemented.                                                                                    |
-| SBOM generation                            | `check:sbom` writes CycloneDX and SPDX SBOMs of the gated inventory to `reports/`. Delivery to Dependency-Track is assumed, not implemented; see [analysis reports](reports.md).                                                                         |
-| Accept, report, and log findings           | Inline suppressions must name rules and give reasons; `check:suppressions` enforces this and records them with Git attribution. Secrets are accepted by fingerprint in `.betterleaksignore`. Central assessment in SecObserve is assumed, not connected. |
-| Reject PRs through a pipeline              | GitHub Actions runs `task verify`. Required GitHub status checks or rulesets are still a repository setting, not supplied merely by mise-action. A central security gate would also need an explicit pipeline query.                                     |
-| CLI and CI integration                     | mise and Task supply the CLI; the workflow runs Linux, native Windows, and macOS, and all three pass.                                                                                                                                                    |
-| IDE integration                            | `.vscode/tasks.json` exposes `mise exec -- task check` and terminal output. This deliberately simple integration was accepted. Rich editor diagnostics are not required for the PoC.                                                                     |
-| Observable results and preferred trends    | Console results exist. Dependency-Track and SecObserve are the assumed central interfaces. Automated ingestion and any missing metrics history still need implementation.                                                                                |
-| Dependency license allowlist               | Grant checks exact SPDX IDs marked OSI-approved. Findings are intentionally advisory for now. Grant is unavailable on native Windows; Linux and macOS run the policy.                                                                                    |
-| Common code smells and antipatterns        | Strict language linters, compiler diagnostics, clang-tidy, and Lizard provide concrete checks. No separately agreed architectural-boundary rule exists.                                                                                                  |
-| Current and additional SLOC                | scc reports current repository and per-file size. Comparing a baseline against the PR is agreed in principle but not implemented.                                                                                                                        |
-| Prefer open-source tools                   | The selected analysis tools are open source. Tool choice and dependency-license compliance are separate questions.                                                                                                                                       |
-| Secret scanning                            | Betterleaks scans the working tree and generated reports and ignores inline allow comments; `verify` also scans history reachable from `HEAD`. Detection scope still follows its supported formats and exclusions.                                       |
-| Cyclomatic complexity and other metrics    | Lizard writes every function's CCN, NLOC, and parameters to `reports/complexity.csv`, then enforces the limits. scc reports size and approximate file-level complexity on the console.                                                                   |
-| Auditable comment-based exceptions         | `check:suppressions` requires a specific rule and a reason for every inline suppression of every tool and exports the register, with Git attribution, to `reports/suppressions.json`. Configuration exemptions are reviewed through Git only.            |
-| Preferred memory-leak detection            | clang-tidy includes static leak checks; C/C++ tests use ASan and UBSan. Runtime leak detection is platform-dependent. MSan and Valgrind remain deferred.                                                                                                 |
-| Organizational scope and policy decisions  | Explicitly outside this repository's PoC scope. Do not report their absence as missing implementation in this template.                                                                                                                                  |
+| Requirement                                | Current coverage and remaining qualification                                                                                                                                                                                                                                                      |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Scan source for vulnerabilities            | Opengrep command-injection rules exist for all seven languages. Compiler and language security checks add other signals. The SAST rules deliberately cover a narrow example.                                                                                                                      |
+| OWASP Top 10 and CWE Top 25                | The demo maps command injection to OWASP Top 10:2025 A05 and CWE-78 from the 2025 CWE Top 25. Full-list coverage is not claimed or required to demonstrate the mechanism.                                                                                                                         |
+| Classify findings by severity              | Grype has vulnerability severities. Opengrep rules carry `ERROR` severity and `HIGH` impact metadata. Cross-tool normalization into a shared high/medium/low model remains report-integration work.                                                                                               |
+| Archivable reports tied to a version       | `check` writes CycloneDX and SPDX SBOMs, a complexity CSV, and the suppression register to `reports/`, with a version label. Another system is assumed to ingest them; upload, retention, and a full manifest are missing.                                                                        |
+| Prefer one tool across supported languages | Task provides a common CLI over several engines. This is the accepted design. Opengrep, Syft, scc, and Lizard each cover multiple languages or ecosystems.                                                                                                                                        |
+| Dependency CVEs                            | Syft and Grype inventory the repository and gate High/Critical findings; unfixed ones need an explicit acceptance with a reason that expires when a fix ships. Narrow exceptions cover Go code compiled into TypeScript's compiler. Detection depends on package metadata and supported matchers. |
+| Linting                                    | Configured for every example language, shell helpers, Markdown, and GitHub Actions. Python lint and annotations are covered; Python type checking is not implemented.                                                                                                                             |
+| SBOM generation                            | `check:sbom` writes CycloneDX and SPDX SBOMs of the gated inventory to `reports/`. Delivery to Dependency-Track is assumed, not implemented; see [analysis reports](reports.md).                                                                                                                  |
+| Accept, report, and log findings           | Inline suppressions must name rules and give reasons; `check:suppressions` enforces this and records them with Git attribution. Secrets are accepted by fingerprint in `.betterleaksignore`. Central assessment in SecObserve is assumed, not connected.                                          |
+| Reject PRs through a pipeline              | GitHub Actions runs `task verify`. Required GitHub status checks or rulesets are still a repository setting, not supplied merely by mise-action. A central security gate would also need an explicit pipeline query.                                                                              |
+| CLI and CI integration                     | mise and Task supply the CLI; the workflow runs Linux, native Windows, and macOS, and all three pass.                                                                                                                                                                                             |
+| IDE integration                            | `.vscode/tasks.json` exposes `mise exec -- task check` and terminal output. This deliberately simple integration was accepted. Rich editor diagnostics are not required for the PoC.                                                                                                              |
+| Observable results and preferred trends    | Console results exist. Dependency-Track and SecObserve are the assumed central interfaces. Automated ingestion and any missing metrics history still need implementation.                                                                                                                         |
+| Dependency license allowlist               | Grant checks exact SPDX IDs marked OSI-approved. Findings are intentionally advisory for now. Grant is unavailable on native Windows; Linux and macOS run the policy.                                                                                                                             |
+| Common code smells and antipatterns        | Strict language linters, compiler diagnostics, clang-tidy, and Lizard provide concrete checks. No separately agreed architectural-boundary rule exists.                                                                                                                                           |
+| Current and additional SLOC                | scc reports current repository and per-file size. Comparing a baseline against the PR is agreed in principle but not implemented.                                                                                                                                                                 |
+| Prefer open-source tools                   | The selected analysis tools are open source. Tool choice and dependency-license compliance are separate questions.                                                                                                                                                                                |
+| Secret scanning                            | Betterleaks scans the working tree and generated reports and ignores inline allow comments; `verify` also scans history reachable from `HEAD`. Detection scope still follows its supported formats and exclusions.                                                                                |
+| Cyclomatic complexity and other metrics    | Lizard writes every function's CCN, NLOC, and parameters to `reports/complexity.csv`, then enforces the limits. scc reports size and approximate file-level complexity on the console.                                                                                                            |
+| Auditable comment-based exceptions         | `check:suppressions` requires a specific rule and a reason for every inline suppression of every tool and exports the register, with Git attribution, to `reports/suppressions.json`. Configuration exemptions are reviewed through Git only.                                                     |
+| Preferred memory-leak detection            | clang-tidy includes static leak checks; C/C++ tests use ASan and UBSan. Runtime leak detection is platform-dependent. MSan and Valgrind remain deferred.                                                                                                                                          |
+| Organizational scope and policy decisions  | Explicitly outside this repository's PoC scope. Do not report their absence as missing implementation in this template.                                                                                                                                                                           |
 
 ## Decisions about the ambiguous requirements
 
@@ -263,17 +263,20 @@ inventory failures still fail. Native Windows reports the unavailable Grant
 check explicitly, with the Linux and macOS jobs retaining it. SPDX expression
 handling and metadata quality can still require review.
 
-Grype fails on High and Critical vulnerabilities with published fixes and shows
-suppressed findings and package locations. `only-fixed` does not prove that an
-application's parent dependency has shipped a usable update. The repository
-therefore has a narrow exception for `GO-2026-5970` in
-`golang.org/x/text@v0.38.0`, embedded in TypeScript 7.0.2's compiler binary. Its
-advisory, version, and location constraints must be reviewed during maintenance;
-do not generalize it into an exemption for all transitive tools. On native
-Windows, Syft records no Go symbols for PE binaries, so Grype matches the same
-compiler's go1.26.4 standard library by module. Seven High advisories that Linux
-and macOS clear by function are ignored for that package version at the Windows
-compiler path only; none of them is Windows-specific.
+Grype fails on every High and Critical vulnerability, fixed upstream or not, and
+shows accepted findings with their locations and reasons. An unfixed finding
+needs an explicit acceptance: `braces@3.0.3` is accepted because only
+repository-controlled glob patterns reach it, with `fix-state: not-fixed` so the
+acceptance ends when a fix ships. A published fix does not prove that a parent
+dependency has shipped a usable update. The repository therefore has a narrow
+exception for `GO-2026-5970` in `golang.org/x/text@v0.38.0`, embedded in
+TypeScript 7.0.2's compiler binary. Its advisory, version, and location
+constraints must be reviewed during maintenance; do not generalize it into an
+exemption for all transitive tools. On native Windows, Syft records no Go
+symbols for PE binaries, so Grype matches the same compiler's go1.26.4 standard
+library by module. Seven High advisories that Linux and macOS clear by function
+are ignored for that package version at the Windows compiler path only; none of
+them is Windows-specific.
 
 The earlier `braces` finding was traced through npm dependencies using
 `pnpm audit` and `pnpm why braces`. `task check:audit` runs
@@ -284,9 +287,11 @@ recheck current findings instead of treating these examples as a permanent
 inventory. See [security details](security.md).
 
 Betterleaks redacts findings, disables live credential validation, and ignores
-inline allow comments, which named neither rule nor reason. `verify` adds a scan
-of the history reachable from `HEAD`, so a secret committed and then deleted
-still fails; it refuses shallow clones, and CI fetches full history.
+inline allow comments, which named neither rule nor reason. Both scans pass an
+explicit configuration, so a dropped-in `.gitleaks.toml` cannot silence them.
+`verify` adds a scan of the history reachable from `HEAD`, so a secret committed
+and then deleted still fails; it refuses shallow clones, and CI fetches full
+history.
 
 Opengrep uses checked-in taint rules and positive and negative regression
 fixtures. Those deliberately unsafe fixtures are scanned, never executed.
