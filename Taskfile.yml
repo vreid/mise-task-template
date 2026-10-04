@@ -75,6 +75,15 @@ tasks:
     cmds:
       - pnpm exec oxlint .
 
+  check:commit:
+    desc: Validate a Conventional Commit message (MESSAGE_FILE=path)
+    requires:
+      vars: [MESSAGE_FILE]
+    env:
+      COMMIT_MESSAGE_FILE: "{{.MESSAGE_FILE}}"
+    cmds:
+      - pnpm exec commitlint --edit "$COMMIT_MESSAGE_FILE"
+
   verify:fmt:
     desc: Require consistent formatting across all supported files
     cmds:
@@ -163,6 +172,7 @@ tasks:
       - pnpm exec lefthook version
       - pnpm exec oxfmt --version
       - pnpm exec oxlint --version
+      - pnpm exec commitlint --version
       - clang --version
       - clang++ --version
       - llvm-config --version

@@ -4,3 +4,8 @@ pre-commit:
   jobs:
     - name: check
       run: mise exec -- task check
+
+commit-msg:
+  jobs:
+    - name: conventional-commit
+      run: mise exec -- task check:commit MESSAGE_FILE="{1}"
