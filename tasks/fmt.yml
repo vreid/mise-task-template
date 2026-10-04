@@ -10,6 +10,7 @@ tasks:
       - task: go
       - task: rust
       - task: csharp
+      - task: c-cpp
 
   files:
     desc: Format Oxfmt-supported files until formatting is stable
@@ -45,3 +46,8 @@ tasks:
     desc: Format C# whitespace in the application and test project
     cmds:
       - bash scripts/format-csharp.sh write
+
+  c-cpp:
+    desc: Format repository C/C++ files with clang-format and the LLVM baseline
+    cmds:
+      - bash scripts/format-c-cpp.sh write

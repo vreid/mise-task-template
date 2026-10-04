@@ -10,7 +10,7 @@ indent_size = 2
 [*.{py,pyi,pyw}]
 indent_size = 4
 
-[*.{c,h,cpp,hpp,cs,rs}]
+[*.{cs,rs}]
 indent_size = 4
 
 [*.go]

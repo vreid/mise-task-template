@@ -34,3 +34,6 @@ tasks:
       - clang --version
       - clang++ --version
       - llvm-config --version
+      - clang-tidy --version
+      - clang-format --version
+      - llvm-symbolizer --version

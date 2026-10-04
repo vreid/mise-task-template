@@ -28,15 +28,15 @@ tasks use `hello world`. A command-line argument cannot contain a NUL byte.
 
 ## Builds and tests
 
-| Example    | Build or execution                   | Test runner                |
-| ---------- | ------------------------------------ | -------------------------- |
-| TypeScript | Node's native TypeScript support     | `node --test`              |
-| C#         | `dotnet build`, targeting .NET 10    | Small console test project |
-| C          | Clang with C17                       | Small test executable      |
-| C++        | Clang++ with C++20                   | Small test executable      |
-| Go         | `go build`                           | `go test`                  |
-| Rust       | `cargo build --locked`, edition 2024 | `cargo test --locked`      |
-| Python     | Python interpreter                   | Standard-library `doctest` |
+| Example    | Build or execution                   | Test runner                     |
+| ---------- | ------------------------------------ | ------------------------------- |
+| TypeScript | Node's native TypeScript support     | `node --test`                   |
+| C#         | `dotnet build`, targeting .NET 10    | Small console test project      |
+| C          | Clang with C17                       | Test executable with ASan/UBSan |
+| C++        | Clang++ with C++20                   | Test executable with ASan/UBSan |
+| Go         | `go build`                           | `go test`                       |
+| Rust       | `cargo build --locked`, edition 2024 | `cargo test --locked`           |
+| Python     | Python interpreter                   | Standard-library `doctest`      |
 
 The same seven cases cover empty text, whitespace-only input, one word, repeated
 and mixed separators, punctuation, and a non-breaking space. C, C++, and C# test
@@ -91,10 +91,10 @@ after updating. Major runtime migrations are explicit changes.
 
 ## Analysis coverage
 
-`task check:lint` aggregates TypeScript, Go, Rust, C#, and Python analysis.
-Oxlint/Oxfmt cover the TypeScript example and repository configuration files;
-Ruff covers Python. Go uses golangci-lint, Rust uses Clippy, and C# uses the
-SDK's strict analyzer set and build-time code-style checks. See
+`task check:lint` aggregates analysis for all seven languages. Oxlint/Oxfmt
+cover the TypeScript example and repository configuration files; Ruff covers
+Python. Go uses golangci-lint, Rust uses Clippy, and C# uses the SDK's strict
+analyzer set and build-time code-style checks. See
 [language checks](language-checks.md) for rules, formatting, and automatic
 fixes.
 
@@ -102,8 +102,11 @@ Shared shell, Markdown, secret, license, and vulnerability checks still scan the
 repository. `task check` keeps formatting advisory; `task verify` enforces it
 and includes all builds and tests. The pre-commit hook still runs `check`.
 
-C and C++ builds enable compiler warnings as errors. Their additional lint and
-formatting policies remain a separate design decision.
+C and C++ enable `-Weverything` with language-compatibility exceptions and use
+clang-tidy. Builds keep compiler warnings advisory; `verify` enforces a frozen
+diagnostic policy so new diagnostic IDs remain advisory after tool upgrades.
+clang-format uses the LLVM baseline, and unit tests run with ASan and UBSan. See
+[C and C++ checks](c-cpp.md).
 
 Native tool references:
 [Node TypeScript support](https://nodejs.org/api/typescript.html),

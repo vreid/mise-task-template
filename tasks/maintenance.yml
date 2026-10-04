@@ -37,3 +37,12 @@ tasks:
       Refresh the allowed OSI-approved license IDs from the SPDX License List
     cmds:
       - node scripts/update-license-policy.mts
+
+  clang-warnings:
+    desc: Explicitly adopt every warning ID known to the installed Clang
+    summary: |
+      Refresh .clang-warnings.json after reviewing a compiler upgrade.
+      This changes the required warning policy; normal maintenance does not run it.
+      Review the diff and run task verify before committing.
+    cmds:
+      - node scripts/update-clang-warnings.mts

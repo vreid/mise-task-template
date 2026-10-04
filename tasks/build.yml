@@ -11,21 +11,14 @@ tasks:
       - task: rust
 
   c:
-    desc: Build the C word-count CLI
+    desc: Build the C example
     cmds:
-      - mkdir -p build/c
-      - >-
-        clang -std=c17 -Wall -Wextra -Wpedantic -Werror
-        examples/c/src/word_count.c examples/c/src/main.c -o build/c/word-count
+      - bash scripts/c-cpp.sh build c
 
   cpp:
-    desc: Build the C++ word-count CLI
+    desc: Build the C++ example
     cmds:
-      - mkdir -p build/cpp
-      - >-
-        clang++ -std=c++20 -Wall -Wextra -Wpedantic -Werror
-        examples/cpp/src/word_count.cpp examples/cpp/src/main.cpp -o
-        build/cpp/word-count
+      - bash scripts/c-cpp.sh build cpp
 
   csharp:
     desc: Build the C# word-count CLI

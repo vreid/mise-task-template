@@ -6,8 +6,8 @@ tasks:
       Run analysis and security checks; report formatting and license findings
     summary: |
       Check all supported repository files without changing them.
-      Analysis, secrets, High/Critical vulnerabilities with available fixes, and tool errors fail.
-      Formatting differences and license policy findings are advisory.
+      Lint, type checks, secrets, fixable High/Critical vulnerabilities, and tool errors fail.
+      Formatting, license policy findings, and C/C++ compiler warnings are advisory.
       Use task verify to enforce formatting or task fix to apply it.
     cmds:
       - task: fmt
@@ -29,6 +29,7 @@ tasks:
       - bash scripts/format-go.sh check
       - bash scripts/check-fmt-rust.sh
       - bash scripts/format-csharp.sh check
+      - bash scripts/format-c-cpp.sh check
 
   lint:
     desc: Run all configured language linters and type checks
@@ -38,6 +39,8 @@ tasks:
       - task: rust
       - task: csharp
       - task: python
+      - task: c
+      - task: cpp
 
   typescript:
     desc: Run strict Oxlint and TypeScript checks across the repository
@@ -116,3 +119,13 @@ tasks:
       COMMIT_MESSAGE_FILE: "{{.MESSAGE_FILE}}"
     cmds:
       - pnpm exec commitlint --edit "$COMMIT_MESSAGE_FILE"
+
+  c:
+    desc: Analyze C sources and tests; compiler warnings are advisory
+    cmds:
+      - bash scripts/c-cpp.sh check c
+
+  cpp:
+    desc: Analyze C++ sources and tests; compiler warnings are advisory
+    cmds:
+      - bash scripts/c-cpp.sh check cpp

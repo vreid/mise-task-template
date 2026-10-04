@@ -11,6 +11,7 @@ tasks:
       - task: go
       - task: rust
       - task: python
+      - task: tooling
 
   typescript:
     desc: Run the TypeScript tests with Node's test runner
@@ -24,24 +25,14 @@ tasks:
         --no-restore
 
   c:
-    desc: Build and run the C test executable
+    desc: Run ASan and UBSan on the C example
     cmds:
-      - mkdir -p build/c
-      - >-
-        clang -std=c17 -Wall -Wextra -Wpedantic -Werror
-        examples/c/src/word_count.c examples/c/tests/word_count_test.c -o
-        build/c/word-count-test
-      - ./build/c/word-count-test
+      - bash scripts/c-cpp.sh test c
 
   cpp:
-    desc: Build and run the C++ test executable
+    desc: Run ASan and UBSan on the C++ example
     cmds:
-      - mkdir -p build/cpp
-      - >-
-        clang++ -std=c++20 -Wall -Wextra -Wpedantic -Werror
-        examples/cpp/src/word_count.cpp examples/cpp/tests/word_count_test.cpp
-        -o build/cpp/word-count-test
-      - ./build/cpp/word-count-test
+      - bash scripts/c-cpp.sh test cpp
 
   go:
     desc: Run the Go tests without reusing cached test results
@@ -59,3 +50,8 @@ tasks:
     desc: Run the Python doc tests
     cmds:
       - python -m doctest -v examples/python/word_count.py
+
+  tooling:
+    desc: Test required versus advisory Clang diagnostics with the real compiler
+    cmds:
+      - node --test scripts/clang-warnings.test.mts

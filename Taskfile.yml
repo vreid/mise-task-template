@@ -8,6 +8,7 @@ env:
   GOTOOLCHAIN: local
   DOTNET_CLI_TELEMETRY_OPTOUT: "1"
   DOTNET_NOLOGO: "1"
+  UBSAN_OPTIONS: print_stacktrace=1
 
 # Each included default task is available as its verb, for example: task check.
 # Includes use the project root unless a task sets dir.

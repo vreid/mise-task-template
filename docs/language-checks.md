@@ -1,10 +1,11 @@
 # Language checks
 
 `task check:lint` calls `check:typescript`, `check:go`, `check:rust`,
-`check:csharp`, and `check:python`. Every diagnostic from these tasks fails the
-gate. Checks analyze complete configured projects, including their tests. Adding
-a new Go module, Cargo package, or .NET project requires extending the
-corresponding tasks; the current examples are listed explicitly.
+`check:csharp`, `check:python`, `check:c`, and `check:cpp`. Lint findings fail;
+C/C++ compiler warnings are advisory here and follow a frozen policy in
+`verify:lint`. Checks analyze complete configured projects, including their
+tests. Adding a new Go module, Cargo package, or .NET project requires extending
+the corresponding tasks; the current examples are listed explicitly.
 
 `task check:fmt` reports formatting differences without failing on them.
 `task verify:fmt` requires consistent formatting. `task fmt` rewrites
@@ -19,6 +20,7 @@ flows include the corresponding language tasks.
 | Rust       | Clippy and compiler checks                             | rustfmt                                     | Machine-applicable Clippy suggestions |
 | C#         | .NET SDK analyzers, compiler, and build-time IDE rules | `dotnet format whitespace`                  | SDK style and analyzer code fixes     |
 | Python     | Ruff                                                   | Ruff                                        | Ruff's safe fixes                     |
+| C/C++      | Clang diagnostics and clang-tidy                       | clang-format with LLVM style                | Native clang-tidy fix-its             |
 
 Use scoped tasks such as `task check:rust`, `task fmt:go`, and `task fix:csharp`
 for faster feedback. Oxfmt's existing `task fmt:files` covers TypeScript along
@@ -112,5 +114,7 @@ Python continues to use the strict `.ruff.toml` policy for repository Python
 files, including the example. Ruff enforces lint and annotation rules but does
 not perform Python type checking; see [Python checks](python.md).
 
-C/C++ analyzer and formatter selection remains a separate task. Their existing
-compiler warnings and tests continue to run in `verify`.
+C/C++ use broad compiler diagnostics, an explicitly selected clang-tidy policy,
+LLVM-style formatting, and ASan/UBSan unit tests. See
+[C and C++ checks](c-cpp.md) for the frozen warning policy, compatibility
+exceptions, sanitizer coverage, and scoped tasks.

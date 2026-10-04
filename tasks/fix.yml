@@ -19,6 +19,8 @@ tasks:
       - task: rust
       - task: csharp
       - task: python
+      - task: c
+      - task: cpp
 
   typescript:
     desc: Apply safe Oxlint fixes; fail on remaining lint or type errors
@@ -60,3 +62,17 @@ tasks:
     desc: Apply markdownlint fixes; fail on remaining Markdown issues
     cmds:
       - pnpm exec markdownlint-cli2 --fix
+
+  c:
+    desc: Apply clang-tidy fixes to C, then check remaining findings
+    cmds:
+      - defer: { task: ":fmt:c-cpp" }
+      - bash scripts/c-cpp.sh fix c
+      - task: :check:c
+
+  cpp:
+    desc: Apply clang-tidy fixes to C++, then check remaining findings
+    cmds:
+      - defer: { task: ":fmt:c-cpp" }
+      - bash scripts/c-cpp.sh fix cpp
+      - task: :check:cpp

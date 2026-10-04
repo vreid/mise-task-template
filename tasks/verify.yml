@@ -5,7 +5,7 @@ tasks:
     desc: Build, check, and test all examples, including strict formatting
     cmds:
       - task: :build
-      - task: :check:lint
+      - task: lint
       - task: :check:shell
       - task: :check:docs
       - task: :check:secrets
@@ -23,3 +23,25 @@ tasks:
       - bash scripts/format-go.sh verify
       - cargo fmt --manifest-path examples/rust/Cargo.toml --all -- --check
       - bash scripts/format-csharp.sh verify
+      - bash scripts/format-c-cpp.sh verify
+
+  lint:
+    desc: Require all language checks, including the frozen Clang warning policy
+    cmds:
+      - task: :check:typescript
+      - task: :check:go
+      - task: :check:rust
+      - task: :check:csharp
+      - task: :check:python
+      - task: c
+      - task: cpp
+
+  c:
+    desc: Require adopted Clang diagnostics and clang-tidy checks for C
+    cmds:
+      - bash scripts/c-cpp.sh verify c
+
+  cpp:
+    desc: Require adopted Clang diagnostics and clang-tidy checks for C++
+    cmds:
+      - bash scripts/c-cpp.sh verify cpp

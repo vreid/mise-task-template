@@ -56,4 +56,5 @@ docs/          # Behavior and policy details
 Each example owns its code and project files. The root owns tool selection, task
 orchestration, hooks, and shared policies. Details:
 [examples and tool versions](docs/examples.md), [Python checks](docs/python.md),
-and [security checks](docs/security.md).
+[language checks](docs/language-checks.md), [C/C++ checks](docs/c-cpp.md), and
+[security checks](docs/security.md).
