@@ -82,3 +82,7 @@ orchestration, hooks, and shared policies. Details:
 [security checks](docs/security.md), and [source security rules](docs/sast.md).
 Repository size and maintainability checks are described in
 [code metrics](docs/code-metrics.md).
+
+The [requirements handover](docs/requirements-handover.md) records the agreed
+PoC scope, requirement coverage, remaining work, and validation evidence for an
+independent review.
