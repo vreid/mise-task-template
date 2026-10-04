@@ -1,11 +1,25 @@
 check-for-app-update: false
 
-# Fail on High/Critical findings with published fixes; keep others visible.
+# Fail on every High/Critical finding, whether or not a fix exists. Accept one
+# only below, with a reason; lower severities stay visible without failing.
 fail-on-severity: high
-only-fixed: true
 show-suppressed: true
 
 ignore:
+  # Accepted while no fixed release exists. The rule stops applying once braces
+  # publishes a fix; the gate then fails until the dependency is updated.
+  - vulnerability: GHSA-vfj7-8cjw-p6xm
+    fix-state: not-fixed
+    package:
+      name: braces
+      version: 3.0.3
+      type: npm
+    reason: >-
+      Stack exhaustion needs attacker-controlled glob patterns. braces arrives
+      only through markdownlint-cli2, which gets its patterns from repository
+      configuration, so the worst case is a failed lint run. Reviewed
+      2026-10-04.
+
   # Revisit when TypeScript publishes a rebuilt compiler. This rule stops matching
   # when the compiler version, embedded module version, or advisory changes.
   - vulnerability: GO-2026-5970
