@@ -9,7 +9,7 @@ import {
 } from "./suppression-catalog.mts";
 
 // Every inline suppression must name specific rules and state a reason. This
-// register enforces both and records each one, with Git attribution, in
+// register enforces both and records each one, with its commit, in
 // reports/suppressions.json. suppression-directives.json defines the syntax.
 
 interface Source extends Catalog {
@@ -17,26 +17,21 @@ interface Source extends Catalog {
   readonly lines: readonly string[];
 }
 
-interface Attribution {
-  readonly commit: string | null;
-  readonly author: string | null;
-  readonly date: string | null;
-}
-
-interface Suppression extends Attribution {
+interface Suppression {
   readonly tool: string;
   readonly file: string;
   readonly line: number;
   readonly rules: readonly string[];
   readonly reason: string | null;
   readonly problems: readonly string[];
+  /** The commit that last changed the line; null while uncommitted. */
+  readonly commit: string | null;
 }
 
 type Groups = Readonly<Partial<Record<string, string>>>;
 
 const root = fileURLToPath(new URL("..", import.meta.url));
-const unattributed: Attribution = { commit: null, author: null, date: null };
-const blames = new Map<string, ReadonlyMap<number, Attribution>>();
+const blames = new Map<string, ReadonlyMap<number, string | null>>();
 
 function git(args: readonly string[]): string {
   return execFileSync("git", args, {
@@ -107,44 +102,28 @@ function problemsOf(
   return problems;
 }
 
-function attribution(commit: string, author: string, time: string) {
-  const seconds = Number(time);
-  if (/^0+$/u.test(commit) || author === "" || Number.isNaN(seconds)) {
-    return unattributed;
-  }
-  return { commit, author, date: new Date(seconds * 1000).toISOString() };
-}
-
-/** Attributes every line of a tracked file to the commit that last set it. */
-function blame(file: string): ReadonlyMap<number, Attribution> {
-  const authors = new Map<string, string>();
-  const times = new Map<string, string>();
-  const lines = new Map<number, Attribution>();
-  let [commit, line] = ["", 0];
-  // Porcelain output describes each commit before its first content row.
+/**
+ * Maps each line of a tracked file to the commit that last changed it. Names
+ * and dates stay in Git, where the commit (and its pull request) leads.
+ */
+function blame(file: string): ReadonlyMap<number, string | null> {
+  const lines = new Map<number, string | null>();
   for (const row of git(["blame", "--porcelain", "--", file]).split("\n")) {
-    const [key = "", , final = ""] = row.split(" ");
-    if (/^[\da-f]{40}$/u.test(key)) {
-      [commit, line] = [key, Number(final)];
-    } else if (key === "author") {
-      authors.set(commit, row.slice(key.length + 1));
-    } else if (key === "author-time") {
-      times.set(commit, row.slice(key.length + 1));
-    } else if (row.startsWith("\t")) {
-      const author = authors.get(commit) ?? "";
-      lines.set(line, attribution(commit, author, times.get(commit) ?? ""));
+    const [commit = "", , line = ""] = row.split(" ");
+    if (/^[\da-f]{40}$/u.test(commit)) {
+      lines.set(Number(line), /^0+$/u.test(commit) ? null : commit);
     }
   }
   return lines;
 }
 
-function attributionAt(file: string, line: number): Attribution {
+function commitAt(file: string, line: number): string | null {
   if (!tracked.has(file)) {
-    return unattributed;
+    return null;
   }
   const lines = blames.get(file) ?? blame(file);
   blames.set(file, lines);
-  return lines.get(line) ?? unattributed;
+  return lines.get(line) ?? null;
 }
 
 function rulesOf(groups: Groups): string[] {
@@ -172,7 +151,7 @@ function evaluate(source: Source, directive: Directive, index: number) {
     rules,
     reason: reason ?? null,
     problems: problemsOf(directive, rules, reason),
-    ...attributionAt(source.file, index + 1),
+    commit: commitAt(source.file, index + 1),
   };
   return suppression;
 }

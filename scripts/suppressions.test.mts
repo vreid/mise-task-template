@@ -28,7 +28,6 @@ interface Recorded extends Omit<Expected, "valid"> {
   readonly reason: string | null;
   readonly problems: readonly string[];
   readonly commit: string | null;
-  readonly author: string | null;
 }
 
 interface Report {
@@ -154,11 +153,14 @@ await test("reasons come from the directive or the comment above it", () => {
   assert.equal(recorded({ ...native, valid: false }).reason, null);
 });
 
-await test("committed suppressions carry Git attribution", () => {
+await test("suppressions record their commit but no names or dates", () => {
   assert.match(run.report.revision ?? "", /^[\da-f]{40}$/u);
   for (const entry of run.report.suppressions) {
     const committed = entry.file in fixtures.committed;
-    assert.equal(entry.commit !== null, committed, entry.file);
-    assert.equal(entry.author, committed ? "Fixture Author" : null);
+    assert.match(entry.commit ?? "", committed ? /^[\da-f]{40}$/u : /^$/u);
+    assert.deepEqual(
+      Object.keys(entry).filter((key) => key === "author" || key === "date"),
+      [],
+    );
   }
 });
