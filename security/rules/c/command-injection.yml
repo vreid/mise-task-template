@@ -1,0 +1,22 @@
+rules:
+  - id: poc.c.environment-to-shell
+    languages: [c]
+    mode: taint
+    severity: ERROR
+    message: >-
+      Environment input reaches a shell command (CWE-78). Use execv with a fixed
+      executable and separate arguments instead.
+    metadata:
+      category: security
+      confidence: HIGH
+      impact: HIGH
+      cwe: ["CWE-78: OS Command Injection"]
+      owasp: ["A05:2025 - Injection"]
+    pattern-sources:
+      - pattern: getenv(...)
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: system($COMMAND)
+              - pattern: popen($COMMAND, ...)
+          - focus-metavariable: $COMMAND

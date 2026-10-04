@@ -6,7 +6,7 @@ tasks:
       Run analysis and security checks; report formatting and license findings
     summary: |
       Check all supported repository files without changing them.
-      Lint, type checks, secrets, fixable High/Critical vulnerabilities, and tool errors fail.
+      Lint, type checks, SAST, secrets, fixable High/Critical vulnerabilities, and tool errors fail.
       Formatting, license policy findings, and C/C++ compiler warnings are advisory.
       Use task verify to enforce formatting or task fix to apply it.
     cmds:
@@ -15,6 +15,7 @@ tasks:
       - task: metrics
       - task: shell
       - task: docs
+      - task: sast
       - task: secrets
       - task: licenses
       - task: vulnerabilities
@@ -103,6 +104,12 @@ tasks:
     desc: Scan the working tree for secrets with Betterleaks
     cmds:
       - betterleaks dir . --redact=100 --validation=false --no-banner
+
+  sast:
+    desc: Test the Opengrep rules and reject matching source vulnerabilities
+    cmds:
+      - task: :test:sast
+      - bash scripts/check-sast.sh
 
   secrets:history:
     desc: Scan all locally available Git history for secrets

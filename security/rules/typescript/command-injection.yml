@@ -1,0 +1,28 @@
+rules:
+  - id: poc.typescript.environment-to-shell
+    languages: [typescript]
+    mode: taint
+    severity: ERROR
+    message: >-
+      Environment input reaches a shell command (CWE-78). Use
+      execFile/execFileSync with a fixed executable and separate arguments
+      instead.
+    metadata:
+      category: security
+      confidence: HIGH
+      impact: HIGH
+      cwe: ["CWE-78: OS Command Injection"]
+      owasp: ["A05:2025 - Injection"]
+    pattern-sources:
+      - pattern-either:
+          - pattern: process.env[$KEY]
+          - pattern: process.env.$KEY
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: $PROCESS.exec($COMMAND, ...)
+              - pattern: $PROCESS.execSync($COMMAND, ...)
+          - metavariable-regex:
+              metavariable: $PROCESS
+              regex: ^(?:node:)?child_process$
+          - focus-metavariable: $COMMAND

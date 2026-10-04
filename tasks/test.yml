@@ -2,7 +2,7 @@ version: "3"
 
 tasks:
   default:
-    desc: Test all seven word-count examples
+    desc: Test all seven word-count examples and the analysis tooling
     cmds:
       - task: typescript
       - task: csharp
@@ -12,6 +12,7 @@ tasks:
       - task: rust
       - task: python
       - task: tooling
+      - task: sast
 
   typescript:
     desc: Run the TypeScript tests with Node's test runner
@@ -55,3 +56,12 @@ tasks:
     desc: Test required versus advisory Clang diagnostics with the real compiler
     cmds:
       - node --test scripts/clang-warnings.test.mts
+
+  sast:
+    desc: Test Opengrep findings and safe alternatives in all seven languages
+    # verify reaches this through both check:sast and test.
+    run: once
+    cmds:
+      - opengrep scan --test --config security/rules security/tests
+        --scan-unknown-extensions --no-rewrite-rule-ids --disable-version-check
+        --strict

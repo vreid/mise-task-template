@@ -5,9 +5,14 @@ dependencies, and install Git hooks. Betterleaks, Syft, Grant, and Grype are
 managed by mise; Grant uses the GitHub backend because it has no mise registry
 entry.
 
+Opengrep also checks application source for command injection in all seven
+languages. See the [source security proof of concept](sast.md) for its rules,
+positive and negative fixtures, and OWASP/CWE coverage limits.
+
 | Task                         | Behavior                                                                                            |
 | ---------------------------- | --------------------------------------------------------------------------------------------------- |
 | `task check:secrets`         | Scan the working tree for secrets with Betterleaks.                                                 |
+| `task check:sast`            | Test local Opengrep rules, then fail on matching source vulnerabilities.                            |
 | `task check:secrets:history` | Scan all locally available Git history.                                                             |
 | `task check:licenses`        | Generate a fresh repository inventory with Syft and warn about Grant policy findings.               |
 | `task check:vulnerabilities` | Scan with Grype; fail on High/Critical findings with available fixes, subject to scoped exceptions. |

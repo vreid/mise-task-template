@@ -34,6 +34,7 @@ tasks:
       - syft version
       - grant version
       - grype version
+      - opengrep --version
       - clang --version
       - clang++ --version
       - llvm-config --version

@@ -9,6 +9,7 @@ tasks:
       - task: :check:metrics
       - task: :check:shell
       - task: :check:docs
+      - task: :check:sast
       - task: :check:secrets
       - task: :check:licenses
       - task: :check:vulnerabilities

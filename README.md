@@ -54,12 +54,14 @@ examples/
   python/      # Standalone script and doctest
 tasks/         # One shared Taskfile per verb
 scripts/       # Helpers for longer operations
+security/      # Opengrep rules and unexecuted security regression fixtures
 docs/          # Behavior and policy details
 ```
 
 Each example owns its code and project files. The root owns tool selection, task
 orchestration, hooks, and shared policies. Details:
 [examples and tool versions](docs/examples.md), [Python checks](docs/python.md),
-[language checks](docs/language-checks.md), [C/C++ checks](docs/c-cpp.md), and
-[security checks](docs/security.md). Repository size and maintainability checks
-are described in [code metrics](docs/code-metrics.md).
+[language checks](docs/language-checks.md), [C/C++ checks](docs/c-cpp.md),
+[security checks](docs/security.md), and [source security rules](docs/sast.md).
+Repository size and maintainability checks are described in
+[code metrics](docs/code-metrics.md).

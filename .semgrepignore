@@ -1,0 +1,4 @@
+# Opengrep reads this filename. Replace its built-in exclusions so ordinary
+# application tests are scanned too. Git ignores still exclude dependencies and
+# build outputs. Only check:sast excludes security/tests, after test:sast checks
+# those intentionally unsafe fixtures against their expected findings.

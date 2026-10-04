@@ -23,6 +23,7 @@ lockfile = true
 [tools]
 betterleaks = "latest"
 grype = "latest"
+opengrep = "latest"
 ruff = "latest"
 shellcheck = "latest"
 shfmt = "latest"
