@@ -3,7 +3,8 @@ check-for-app-update: false
 # Include installed packages, lockfiles, binaries, and every supported ecosystem.
 default-catalogers: [all]
 select-catalogers: [-deprecated]
-exclude: ["**/.git/**"]
+# Generated reports must not feed back into the next inventory.
+exclude: ["**/.git/**", "./reports/**"]
 
 package:
   search-unindexed-archives: true
@@ -17,3 +18,9 @@ golang:
   capture-symbols: all
 javascript:
   include-dev-dependencies: true
+
+# Syft's CycloneDX writer names package evidence files by absolute host path,
+# exposing local directories. The checks and reports only need package data.
+file:
+  metadata:
+    selection: none

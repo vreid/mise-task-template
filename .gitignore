@@ -1,6 +1,7 @@
 node_modules/
 .ruff_cache/
 build/
+/reports/
 dist/
 coverage/
 .venv/

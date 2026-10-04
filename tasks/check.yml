@@ -17,6 +17,8 @@ tasks:
       - task: docs
       - task: actions
       - task: sast
+      # Generate reports before the secret scan so exported files are covered.
+      - task: sbom
       - task: secrets
       - task: licenses
       - task: vulnerabilities
@@ -128,9 +130,17 @@ tasks:
       - betterleaks git . --log-opts=--all --redact=100 --validation=false
         --no-banner
 
-  licenses:
-    desc: Inventory the repository with Syft and warn about OSI policy findings
+  sbom:
+    desc: Inventory the repository with Syft and write SBOMs to reports/
+    # licenses and vulnerabilities both consume this inventory.
+    run: once
     cmds:
+      - bash scripts/sbom.sh
+
+  licenses:
+    desc: Warn about OSI policy findings in the repository SBOM
+    cmds:
+      - task: sbom
       - cmd: bash scripts/check-licenses.sh
         platforms: [linux, darwin]
       - cmd:
@@ -139,8 +149,11 @@ tasks:
         platforms: [windows]
 
   vulnerabilities:
-    desc: Scan with Grype; fail on High/Critical findings with available fixes
+    desc:
+      Scan the repository SBOM with Grype; fail on High/Critical findings with
+      available fixes
     cmds:
+      - task: sbom
       - bash scripts/check-vulnerabilities.sh
 
   audit:

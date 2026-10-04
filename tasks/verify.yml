@@ -12,6 +12,8 @@ tasks:
       - task: :check:docs
       - task: :check:actions
       - task: :check:sast
+      # Generate reports before the secret scan so exported files are covered.
+      - task: :check:sbom
       - task: :check:secrets
       - task: :check:licenses
       - task: :check:vulnerabilities
