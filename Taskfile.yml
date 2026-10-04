@@ -1,0 +1,43 @@
+version: '3'
+
+env:
+  CC: clang
+  CXX: clang++
+  # Preserve an explicit SDK; otherwise use Xcode or the Command Line Tools on macOS.
+  SDKROOT:
+    sh: |
+      if [ -n "$SDKROOT" ]; then
+        printf '%s' "$SDKROOT"
+      elif [ '{{OS}}' = 'darwin' ]; then
+        xcrun --show-sdk-path
+      fi
+
+tasks:
+  default:
+    cmds:
+      - task: help
+
+  help:
+    desc: List available tasks
+    cmds:
+      - task --list
+
+  tools:update:
+    desc: Update and install the latest pinned project tools
+    summary: |
+      Update mise.lock to the latest LLVM release and Task 3.x, then install them.
+      Review the lockfile changes before committing.
+    cmds:
+      - mise lock --bump
+      - mise install --locked
+
+  doctor:
+    desc: Show the selected Task and LLVM/Clang versions
+    summary: |
+      After bootstrap, run mise exec -- task doctor.
+      Checks that the tools execute without installing or repairing them.
+    cmds:
+      - task --version
+      - clang --version
+      - clang++ --version
+      - llvm-config --version
