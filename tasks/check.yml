@@ -15,6 +15,7 @@ tasks:
       - task: metrics
       - task: shell
       - task: docs
+      - task: actions
       - task: sast
       - task: secrets
       - task: licenses
@@ -100,6 +101,16 @@ tasks:
     cmds:
       - pnpm exec markdownlint-cli2
 
+  actions:
+    desc: Check GitHub Actions workflows and their embedded shell scripts
+    cmds:
+      - actionlint
+
+  actions:updates:
+    desc: Report available GitHub Actions updates without changing files
+    cmds:
+      - pnpm exec actions-up --dry-run
+
   secrets:
     desc: Scan the working tree for secrets with Betterleaks
     cmds:
@@ -120,7 +131,12 @@ tasks:
   licenses:
     desc: Inventory the repository with Syft and warn about OSI policy findings
     cmds:
-      - bash scripts/check-licenses.sh
+      - cmd: bash scripts/check-licenses.sh
+        platforms: [linux, darwin]
+      - cmd:
+          echo 'License check unavailable on native Windows (Grant has no
+          release); Linux and macOS run the policy.'
+        platforms: [windows]
 
   vulnerabilities:
     desc: Scan with Grype; fail on High/Critical findings with available fixes

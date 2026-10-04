@@ -57,8 +57,9 @@ check)
 verify)
   # One translation unit per SARIF document; code generation also finds
   # diagnostics that a syntax-only pass would miss.
+  mkdir -p "$output"
   for source in "${sources[@]}"; do
-    node scripts/clang-warnings.mts "$compiler" "${flags[@]}" -c "$source" -o /dev/null
+    node scripts/clang-warnings.mts "$compiler" "${flags[@]}" -c "$source" -o "$output/check.o"
   done
   clang-tidy --verify-config
   clang-tidy --quiet "${sources[@]}" -- "${flags[@]}"

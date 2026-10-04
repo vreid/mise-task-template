@@ -6,7 +6,7 @@ cd "$(dirname "$0")/.."
 # Use the interpreter beside the resolved console entry point: Lizard lives in
 # mise's isolated virtualenv, not in the example's Python environment.
 lizard_python=$(python -c \
-  'from pathlib import Path; import sys; print(Path(sys.argv[1]).resolve().with_name("python"))' \
+  'from pathlib import Path; import sys; print(Path(sys.argv[1]).resolve().with_name("python.exe" if sys.platform == "win32" else "python").as_posix())' \
   "$(command -v lizard)")
 
 # Git handles nested ignores, dependencies, and build outputs. NUL separation

@@ -19,8 +19,10 @@ idiomatic_version_file_enable_tools = [
 # go.mod declares compatibility; .go-version selects the development compiler.
 idiomatic_version_file_disable_files = ["go:go.mod"]
 lockfile = true
+lockfile_platforms = ["linux-x64", "macos-arm64", "windows-x64"]
 
 [tools]
+actionlint = "latest"
 betterleaks = "latest"
 grype = "latest"
 opengrep = "latest"
@@ -29,7 +31,8 @@ shellcheck = "latest"
 shfmt = "latest"
 syft = "latest"
 uv = "latest"
-"github:anchore/grant" = "latest"
+# Upstream publishes Grant only for Linux and macOS.
+"github:anchore/grant" = { version = "latest", os = ["linux", "macos"] }
 "github:boyter/scc" = "latest"
 # Isolated CLI environment; mise locks Lizard and its Python dependencies.
 "pypi:lizard" = "latest"

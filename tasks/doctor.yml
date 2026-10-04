@@ -26,13 +26,20 @@ tasks:
       - pnpm exec markdownlint-cli2 --no-globs
       - shellcheck --version
       - shfmt --version
+      - actionlint --version
+      - pnpm exec actions-up --version
       - ruff --version
       - uv --version
       - scc --version
       - lizard --version
       - betterleaks version
       - syft version
-      - grant version
+      - cmd: grant version
+        platforms: [linux, darwin]
+      - cmd:
+          echo 'Grant unavailable on native Windows; license policy runs on
+          Linux and macOS.'
+        platforms: [windows]
       - grype version
       - opengrep --version
       - clang --version

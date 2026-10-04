@@ -6,18 +6,19 @@ tasks:
       Update tools, dependencies, and license policy, apply fixes, and verify
     summary: |
       Update mise tools within their declared version ranges and all workspace dependencies to latest.
+      Refresh GitHub Actions to latest releases with commit SHA pins.
       Include dependency major upgrades while preserving the Node and pnpm major versions.
       Refresh exact .NET and Rust runtime pins within their selected major versions.
       Refresh the OSI-approved license list from SPDX.
       Refresh mise's native dependency locks for Python CLI tools.
       Restore tools, dependencies, and Git hooks, then run doctor, fix, and verify.
-      Review formatting, native version files, manifests, lockfiles (including .mise/locks), and .grant.yaml before committing.
+      Review workflows, formatting, native version files, manifests, lockfiles (including .mise/locks), and .grant.yaml before committing.
     cmds:
       - task: runtimes
       - task: :tools:update
       # Reload tool versions after updating before running the remaining tasks.
-      - mise exec -- task maintenance:deps maintenance:licenses setup doctor fix
-        verify
+      - mise exec -- task maintenance:deps maintenance:actions
+        maintenance:licenses setup doctor fix verify
 
   runtimes:
     desc: Refresh native .NET and Rust version pins through mise
@@ -38,6 +39,11 @@ tasks:
       Refresh the allowed OSI-approved license IDs from the SPDX License List
     cmds:
       - node scripts/update-license-policy.mts
+
+  actions:
+    desc: Update GitHub Actions to latest releases with commit SHA pins
+    cmds:
+      - pnpm exec actions-up --yes
 
   clang-warnings:
     desc: Explicitly adopt every warning ID known to the installed Clang

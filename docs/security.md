@@ -79,6 +79,10 @@ the scanner's detection rules and the files and history available to it.
 
 ## License policy
 
+Grant has no native Windows release. `check:licenses` reports that limitation on
+Windows; the Linux and macOS CI jobs run the policy. Syft inventory and Grype
+vulnerability checks still run on all three platforms.
+
 The policy allows every license ID marked `isOsiApproved` in the
 [SPDX License List](https://github.com/spdx/license-list-data). It includes GPL,
 AGPL, and other copyleft licenses. `.grant.yaml` records the source and dataset

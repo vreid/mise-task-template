@@ -5,5 +5,7 @@ set -euo pipefail
 sbom=$(mktemp)
 trap 'rm -f "$sbom"' EXIT
 
-syft scan dir:. --config .syft.yaml -o "syft-json=$sbom"
-grype "sbom:$sbom" --config .grype.yaml
+# Shell redirection and stdin avoid MSYS path conversion inside tool-specific
+# arguments such as syft-json=/tmp/... and sbom:/tmp/... on native Windows.
+syft scan dir:. --config .syft.yaml -o syft-json >"$sbom"
+grype --config .grype.yaml <"$sbom"
