@@ -6,10 +6,11 @@ discussion, implementation evidence, and remaining work as of 2026-10-04. Use it
 to review the proof of concept without reopening settled scope decisions.
 
 The repository demonstrates a shared analysis toolchain across seven languages.
-Most local checks exist. Persistent, versioned report delivery and baseline
-metrics comparison remain unfinished. Dependency-Track and SecObserve are
-assumed reporting destinations, but this repository does not yet integrate them.
-Native Windows verification also has a known CI failure described below.
+Most local checks exist, and all three CI platforms pass. Checks write SBOMs,
+complexity metrics, and a suppression register to `reports/`; delivering those
+files to other systems, a version manifest, and baseline metrics comparison
+remain unfinished. Dependency-Track and SecObserve are assumed reporting
+destinations, but this repository does not yet integrate them.
 
 ## Source and scope
 
@@ -48,30 +49,30 @@ The following scope decisions were explicitly agreed:
 the capability within its documented scope. It does not imply universal
 detection, a successful run on every platform, or completed central reporting.
 
-| Requirement                                | Current coverage and remaining qualification                                                                                                                                                                         |
-| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Scan source for vulnerabilities            | Opengrep command-injection rules exist for all seven languages. Compiler and language security checks add other signals. The SAST rules deliberately cover a narrow example.                                         |
-| OWASP Top 10 and CWE Top 25                | The demo maps command injection to OWASP Top 10:2025 A05 and CWE-78 from the 2025 CWE Top 25. Full-list coverage is not claimed or required to demonstrate the mechanism.                                            |
-| Classify findings by severity              | Grype has vulnerability severities. Opengrep rules carry `ERROR` severity and `HIGH` impact metadata. Cross-tool normalization into a shared high/medium/low model remains report-integration work.                  |
-| Archivable reports tied to a version       | Tools can emit machine-readable reports, but automated persistent export, version metadata, retention, and upload tasks are missing. Current Syft helper files are temporary and deleted.                            |
-| Prefer one tool across supported languages | Task provides a common CLI over several engines. This is the accepted design. Opengrep, Syft, scc, and Lizard each cover multiple languages or ecosystems.                                                           |
-| Dependency CVEs                            | Syft and Grype inventory the repository and gate fixable High/Critical findings, with a narrow documented exception. Detection depends on package metadata and supported matchers.                                   |
-| Linting                                    | Configured for every example language, shell helpers, Markdown, and GitHub Actions. Python lint and annotations are covered; Python type checking is not implemented.                                                |
-| SBOM generation                            | Syft generates a fresh repository inventory. Persistent CycloneDX delivery to Dependency-Track is still missing.                                                                                                     |
-| Accept, report, and log findings           | Native suppressions and versioned configuration exist. Central assessment, acceptance comments, and audit history are assigned to SecObserve under the platform assumption; the connection is not implemented.       |
-| Reject PRs through a pipeline              | GitHub Actions runs `task verify`. Required GitHub status checks or rulesets are still a repository setting, not supplied merely by mise-action. A central security gate would also need an explicit pipeline query. |
-| CLI and CI integration                     | mise and Task supply the CLI; the workflow targets Linux, native Windows, and macOS. Windows currently fails during C++ verification.                                                                                |
-| IDE integration                            | `.vscode/tasks.json` exposes `mise exec -- task check` and terminal output. This deliberately simple integration was accepted. Rich editor diagnostics are not required for the PoC.                                 |
-| Observable results and preferred trends    | Console results exist. Dependency-Track and SecObserve are the assumed central interfaces. Automated ingestion and any missing metrics history still need implementation.                                            |
-| Dependency license allowlist               | Grant checks exact SPDX IDs marked OSI-approved. Findings are intentionally advisory for now. Grant is unavailable on native Windows; Linux and macOS run the policy.                                                |
-| Common code smells and antipatterns        | Strict language linters, compiler diagnostics, clang-tidy, and Lizard provide concrete checks. No separately agreed architectural-boundary rule exists.                                                              |
-| Current and additional SLOC                | scc reports current repository and per-file size. Comparing a baseline against the PR is agreed in principle but not implemented.                                                                                    |
-| Prefer open-source tools                   | The selected analysis tools are open source. Tool choice and dependency-license compliance are separate questions.                                                                                                   |
-| Secret scanning                            | Betterleaks scans the working tree, with an optional full-local-history task. Detection scope still follows its supported formats and exclusions.                                                                    |
-| Cyclomatic complexity and other metrics    | Lizard enforces function complexity, size, and parameter limits. scc reports size and approximate file-level complexity.                                                                                             |
-| Auditable comment-based exceptions         | Native rule-specific comments and Git history provide a mechanism. There is no unified suppression register, mandatory justification checker, or versioned suppression export.                                       |
-| Preferred memory-leak detection            | clang-tidy includes static leak checks; C/C++ tests use ASan and UBSan. Runtime leak detection is platform-dependent. MSan and Valgrind remain deferred.                                                             |
-| Organizational scope and policy decisions  | Explicitly outside this repository's PoC scope. Do not report their absence as missing implementation in this template.                                                                                              |
+| Requirement                                | Current coverage and remaining qualification                                                                                                                                                                                                             |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Scan source for vulnerabilities            | Opengrep command-injection rules exist for all seven languages. Compiler and language security checks add other signals. The SAST rules deliberately cover a narrow example.                                                                             |
+| OWASP Top 10 and CWE Top 25                | The demo maps command injection to OWASP Top 10:2025 A05 and CWE-78 from the 2025 CWE Top 25. Full-list coverage is not claimed or required to demonstrate the mechanism.                                                                                |
+| Classify findings by severity              | Grype has vulnerability severities. Opengrep rules carry `ERROR` severity and `HIGH` impact metadata. Cross-tool normalization into a shared high/medium/low model remains report-integration work.                                                      |
+| Archivable reports tied to a version       | `check` writes CycloneDX and SPDX SBOMs, a complexity CSV, and the suppression register to `reports/`, with a version label. Another system is assumed to ingest them; upload, retention, and a full manifest are missing.                               |
+| Prefer one tool across supported languages | Task provides a common CLI over several engines. This is the accepted design. Opengrep, Syft, scc, and Lizard each cover multiple languages or ecosystems.                                                                                               |
+| Dependency CVEs                            | Syft and Grype inventory the repository and gate fixable High/Critical findings, with narrow documented exceptions for Go code compiled into TypeScript's compiler. Detection depends on package metadata and supported matchers.                        |
+| Linting                                    | Configured for every example language, shell helpers, Markdown, and GitHub Actions. Python lint and annotations are covered; Python type checking is not implemented.                                                                                    |
+| SBOM generation                            | `check:sbom` writes CycloneDX and SPDX SBOMs of the gated inventory to `reports/`. Delivery to Dependency-Track is assumed, not implemented; see [analysis reports](reports.md).                                                                         |
+| Accept, report, and log findings           | Inline suppressions must name rules and give reasons; `check:suppressions` enforces this and records them with Git attribution. Secrets are accepted by fingerprint in `.betterleaksignore`. Central assessment in SecObserve is assumed, not connected. |
+| Reject PRs through a pipeline              | GitHub Actions runs `task verify`. Required GitHub status checks or rulesets are still a repository setting, not supplied merely by mise-action. A central security gate would also need an explicit pipeline query.                                     |
+| CLI and CI integration                     | mise and Task supply the CLI; the workflow runs Linux, native Windows, and macOS, and all three pass.                                                                                                                                                    |
+| IDE integration                            | `.vscode/tasks.json` exposes `mise exec -- task check` and terminal output. This deliberately simple integration was accepted. Rich editor diagnostics are not required for the PoC.                                                                     |
+| Observable results and preferred trends    | Console results exist. Dependency-Track and SecObserve are the assumed central interfaces. Automated ingestion and any missing metrics history still need implementation.                                                                                |
+| Dependency license allowlist               | Grant checks exact SPDX IDs marked OSI-approved. Findings are intentionally advisory for now. Grant is unavailable on native Windows; Linux and macOS run the policy.                                                                                    |
+| Common code smells and antipatterns        | Strict language linters, compiler diagnostics, clang-tidy, and Lizard provide concrete checks. No separately agreed architectural-boundary rule exists.                                                                                                  |
+| Current and additional SLOC                | scc reports current repository and per-file size. Comparing a baseline against the PR is agreed in principle but not implemented.                                                                                                                        |
+| Prefer open-source tools                   | The selected analysis tools are open source. Tool choice and dependency-license compliance are separate questions.                                                                                                                                       |
+| Secret scanning                            | Betterleaks scans the working tree and generated reports and ignores inline allow comments; `verify` also scans history reachable from `HEAD`. Detection scope still follows its supported formats and exclusions.                                       |
+| Cyclomatic complexity and other metrics    | Lizard writes every function's CCN, NLOC, and parameters to `reports/complexity.csv`, then enforces the limits. scc reports size and approximate file-level complexity on the console.                                                                   |
+| Auditable comment-based exceptions         | `check:suppressions` requires a specific rule and a reason for every inline suppression of every tool and exports the register, with Git attribution, to `reports/suppressions.json`. Configuration exemptions are reviewed through Git only.            |
+| Preferred memory-leak detection            | clang-tidy includes static leak checks; C/C++ tests use ASan and UBSan. Runtime leak detection is platform-dependent. MSan and Valgrind remain deferred.                                                                                                 |
+| Organizational scope and policy decisions  | Explicitly outside this repository's PoC scope. Do not report their absence as missing implementation in this template.                                                                                                                                  |
 
 ## Decisions about the ambiguous requirements
 
@@ -109,10 +110,12 @@ is useful for exact source identity, but the requirement does not settle the
 human-facing version convention.
 
 The agreed direction is to accept an externally supplied version label, whatever
-scheme supplies it, and retain the actual analyzed commit SHA separately. This
-is an integration requirement, not an already implemented report-versioning
-feature. Conventional Commit messages are implemented; they do not choose a
-release-version scheme.
+scheme supplies it, and retain the actual analyzed commit SHA separately. The
+SBOM takes its label from `REPORT_VERSION` when set and from
+`git describe --tags --always --dirty` otherwise, and the suppression register
+records the full analyzed commit. A manifest tying every report to commit,
+tools, and platform is not implemented. Conventional Commit messages are
+implemented; they do not choose a release-version scheme.
 
 A proposed report record should also identify the repository, branch or PR,
 baseline when relevant, tool versions, timestamp, and platform. Be explicit
@@ -172,9 +175,10 @@ architecture framework, duplication gate, or module-onboarding system.
 ### Check and fix behavior
 
 `task check` reports formatting differences without failing for those
-differences. Lint, type, security, complexity, configuration, and tool failures
-still fail. C/C++ compiler warnings are advisory here; clang-tidy policy
-findings remain enforced. License policy findings are advisory by request.
+differences. Lint, type, security, complexity, suppression, configuration, and
+tool failures still fail. C/C++ compiler warnings are advisory here; clang-tidy
+policy findings remain enforced. License policy findings are advisory by
+request.
 
 `task verify` builds, analyzes, enforces formatting and adopted compiler
 diagnostics, and runs tests. License findings remain advisory here too.
@@ -195,17 +199,17 @@ or extension-specific integration.
 
 ### Language and infrastructure checks
 
-| Area           | Selected tools and policy                                                                                                                                                                                   |
-| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| TypeScript     | Strict Oxlint with type-aware analysis and type checking; strict `tsconfig.json`; Oxfmt; Node's test runner.                                                                                                |
-| C#             | SDK `latest-all` analyzers, build-time style analysis, nullable checks, and warnings as errors; `dotnet format`. This is the SDK-supported broad set, not every historical diagnostic.                      |
-| Go             | golangci-lint with strict checks; gofumpt and goimports handled separately so formatting stays advisory in `check`; Go tests.                                                                               |
-| Rust           | Clippy standard and pedantic checks plus selected restrictions; warnings as errors; unsafe code forbidden; rustfmt and Cargo tests. Do not enable the whole conflicting restriction group indiscriminately. |
-| Python         | Ruff's stable `ALL` rules with documented conflicts excluded; Ruff formatting and standard-library doctests. Standalone Python files do not need a Python application project.                              |
-| C and C++      | Clang, clang-tidy, clang-format with LLVM baseline, and ASan/UBSan test builds. C17 and C++20 are the selected standards.                                                                                   |
-| Shell          | ShellCheck and shfmt, including repository helper scripts.                                                                                                                                                  |
-| Markdown       | Oxfmt for formatting and markdownlint for content and structure.                                                                                                                                            |
-| GitHub Actions | actionlint in normal checks; actions-up in maintenance and an optional update-preview task.                                                                                                                 |
+| Area           | Selected tools and policy                                                                                                                                                                                                                         |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| TypeScript     | Strict Oxlint with type-aware analysis and type checking; strict `tsconfig.json`; Oxfmt; Node's test runner.                                                                                                                                      |
+| C#             | SDK `latest-all` analyzers, build-time style analysis, nullable checks, and warnings as errors; `dotnet format`. This is the SDK-supported broad set, not every historical diagnostic.                                                            |
+| Go             | golangci-lint with strict checks; gofumpt and goimports handled separately so formatting stays advisory in `check`; Go tests.                                                                                                                     |
+| Rust           | Clippy standard and pedantic checks plus selected restrictions, including reasons on lint attributes; warnings as errors; unsafe code forbidden; rustfmt and Cargo tests. Do not enable the whole conflicting restriction group indiscriminately. |
+| Python         | Ruff's stable `ALL` rules with documented conflicts excluded; Ruff formatting and standard-library doctests. Standalone Python files do not need a Python application project.                                                                    |
+| C and C++      | Clang, clang-tidy, clang-format with LLVM baseline, and ASan/UBSan test builds. C17 and C++20 are the selected standards.                                                                                                                         |
+| Shell          | ShellCheck and shfmt, including repository helper scripts.                                                                                                                                                                                        |
+| Markdown       | Oxfmt for formatting and markdownlint for content and structure.                                                                                                                                                                                  |
+| GitHub Actions | actionlint in normal checks; actions-up in maintenance and an optional update-preview task.                                                                                                                                                       |
 
 For C/C++, the user explicitly resolved the conflict between `-Weverything`,
 `-Werror`, and painless compiler upgrades: freeze the required diagnostic policy
@@ -225,11 +229,12 @@ not claim universal leak or uninitialized-read detection from ASan/UBSan. See
 [C and C++ details](c-cpp.md) and [language checks](language-checks.md).
 
 Lizard's required limits are CCN 10, function NLOC 60, and five parameters, with
-a 1,000-line physical-length backstop and zero violations allowed. Its `outside`
-extension covers top-level logic. A small adapter includes `.mts` and `.cts`.
-Nesting gates were omitted because of demonstrated parser behavior; cognitive
-complexity is unavailable in the pinned release. Duplication is not gated
-because the examples intentionally implement the same algorithm. scc's
+a 1,000-line physical-length backstop and zero violations allowed. It writes
+every function's metrics to `reports/complexity.csv` before checking them. Its
+`outside` extension covers top-level logic. A small adapter includes `.mts` and
+`.cts`. Nesting gates were omitted because of demonstrated parser behavior;
+cognitive complexity is unavailable in the pinned release. Duplication is not
+gated because the examples intentionally implement the same algorithm. scc's
 approximate per-file complexity and overall size remain advisory. See
 [code metrics](code-metrics.md).
 
@@ -237,10 +242,11 @@ approximate per-file complexity and overall size remain advisory. See
 
 Syft scans the repository with every supported non-deprecated cataloger,
 including installed and development dependencies, lockfiles, generated outputs,
-vendored files, supported archives, and binaries. Only `.git` is explicitly
-excluded by the Syft configuration. Tools installed by mise outside the
-repository and unsupported or undetected packages are outside that inventory.
-Metadata enrichment may contact upstream registries.
+vendored files, supported archives, and binaries. Only `.git` and the generated
+`reports/` folder are excluded. File metadata cataloging is off, so the
+CycloneDX output contains no absolute host paths. Tools installed by mise
+outside the repository and unsupported or undetected packages are outside that
+inventory. Metadata enrichment may contact upstream registries.
 
 The user selected **all OSI-approved licenses**, including GPL and AGPL, rather
 than a permissive-only subset. Company revenue alone was not accepted as a
@@ -263,7 +269,11 @@ application's parent dependency has shipped a usable update. The repository
 therefore has a narrow exception for `GO-2026-5970` in
 `golang.org/x/text@v0.38.0`, embedded in TypeScript 7.0.2's compiler binary. Its
 advisory, version, and location constraints must be reviewed during maintenance;
-do not generalize it into an exemption for all transitive tools.
+do not generalize it into an exemption for all transitive tools. On native
+Windows, Syft records no Go symbols for PE binaries, so Grype matches the same
+compiler's go1.26.4 standard library by module. Seven High advisories that Linux
+and macOS clear by function are ignored for that package version at the Windows
+compiler path only; none of them is Windows-specific.
 
 The earlier `braces` finding was traced through npm dependencies using
 `pnpm audit` and `pnpm why braces`. `task check:audit` runs
@@ -273,17 +283,19 @@ with no published fix. Dependency trees and vulnerability databases change;
 recheck current findings instead of treating these examples as a permanent
 inventory. See [security details](security.md).
 
-Betterleaks redacts findings and disables live credential validation. Its
-working-tree scan and optional history scan have different scopes; shallow
-clones do not contain full repository history.
+Betterleaks redacts findings, disables live credential validation, and ignores
+inline allow comments, which named neither rule nor reason. `verify` adds a scan
+of the history reachable from `HEAD`, so a secret committed and then deleted
+still fails; it refuses shallow clones, and CI fetches full history.
 
 Opengrep uses checked-in taint rules and positive and negative regression
 fixtures. Those deliberately unsafe fixtures are scanned, never executed.
 Application tests stay in normal analysis scope. The helper handles `.mts` and
 `.cts` explicitly because of the pinned engine's discovery limitation. The demo
 does not model arbitrary HTTP sources, shell APIs, wrappers, or cross-file
-flows. Narrow inline suppressions should identify a rule and explain the
-reviewed reason; there is no automatic organization-wide justification policy.
+flows. Inline suppressions must identify a rule and give a reason;
+`check:suppressions` enforces this for Opengrep and every other tool, including
+markers that Opengrep honors inside string literals.
 
 ## Assumed reporting platforms and actual remaining work
 
@@ -307,31 +319,33 @@ deduplication, and a successful actual import still need to be demonstrated.
 
 Under these assumptions, the remaining concrete PoC work is:
 
-1. Produce durable machine-readable reports, preserving them even when a scanner
-   reports findings. Keep reports outside their own scan inputs.
-2. Associate artifacts with an external version label and the exact analyzed
-   SHA, with enough tool and scan metadata to interpret later results.
-3. Export a CycloneDX SBOM to Dependency-Track and supported finding formats to
-   SecObserve. Provide configurable endpoints and credentials without putting
-   secrets into repository files.
+1. Extend the durable reports in `reports/` (SBOMs, complexity, suppressions) to
+   lint, SAST, secret, license, and vulnerability findings, still written even
+   when a scanner reports findings and kept out of their own scan inputs.
+2. Add a manifest that associates every report with the external version label,
+   the exact analyzed SHA, tool versions, and platform. The SBOM label and the
+   register's revision cover only part of this.
+3. Push the existing CycloneDX SBOM to Dependency-Track and supported finding
+   formats to SecObserve. Provide configurable endpoints and credentials without
+   putting secrets into repository files.
 4. Keep explicit artifact retention for reports that the platforms do not
    retain, including any lint, metrics, or suppression evidence needed for the
    requirement. Uploading security findings alone does not archive every tool's
    output.
-5. Demonstrate an accepted or false-positive finding with a recorded reason. If
+5. Inline acceptance with a recorded reason is enforced and registered. If
    central acceptance is meant to control merging, query the relevant security
    gate after ingestion and deliberately reconcile it with local scanner exits.
    An upload by itself neither blocks a PR nor overrides a local failure.
 6. Add baseline-versus-PR SLOC reporting with a named comparison policy. Reuse
    the existing counters and exclusions instead of building a metrics service.
-7. Resolve the known native Windows CI failure and verify every required
-   platform job. Confirm required status checks are configured in GitHub.
+7. Configure the three `verify` jobs as required status checks in GitHub. All
+   three now pass; `main` currently has no branch protection or rulesets.
 
 Broader OWASP/CWE rules, a precisely defined architecture example, and richer
 editor integrations can be added later where useful. Organizational decisions
 and support for arbitrarily added modules remain outside scope.
 
-## Validation evidence and current platform limitation
+## Validation evidence
 
 Full `task verify` passed locally on macOS, including from a clean checkout
 without running `setup` first. actionlint accepted the workflow and rejected a
@@ -341,21 +355,28 @@ x64, and macOS ARM64 without changing existing pinned tool versions.
 
 The
 [first hosted matrix run](https://github.com/vreid/mise-task-template/actions/runs/37228105681)
-was inspected on 2026-10-04 while preparing this handover:
+passed on Linux and macOS but failed on Windows in `verify:cpp`, before any
+later task ran. Fixing it on the `fix/requirements-gaps` branch exposed three
+more Windows-only problems in sequence. All four were fixed without weakening
+the shared policy:
 
-- `verify (ubuntu-24.04)` passed.
-- `verify (windows-2025)` failed in `verify:cpp`. clang-tidy reported
-  `bugprone-exception-escape` for `main` in both `examples/cpp/src/main.cpp` and
-  `examples/cpp/tests/word_count_test.cpp`. The diagnostic traces potential
-  exceptions through the MSVC standard library's stream output. Later
-  verification tasks were not reached, so this is not the only possible Windows
-  issue.
-- `verify (macos-26)` passed. Check later runs as the code and tool versions
-  change.
+- clang-tidy's `bugprone-exception-escape` traced exceptions from the MSVC
+  standard library's streams out of both C++ `main` functions. Both now catch
+  everything in a function-try-block and return 1.
+- Lizard's interpreter lookup resolved a launcher symlink, but mise installs a
+  standalone launcher on Windows. The check now finds the environment's
+  `pyvenv.cfg` beside the launcher.
+- Syft records no Go symbols for PE binaries, so Grype reported seven High
+  standard library advisories in TypeScript's `tsc.exe` that Linux and macOS
+  clear by function. Narrow exceptions cover exactly those advisories at that
+  path; see [security details](security.md).
+- Windows test executables could not load Clang's dynamic sanitizer runtime. The
+  test helper adds the compiler's runtime directory to `PATH` on Windows.
 
-The workflow is therefore codified, but all-platform success has not yet been
-established. Prefer correcting the code or a narrowly justified tool issue to
-weakening the shared strict policy merely to make the matrix green.
+[Run 37233061266](https://github.com/vreid/mise-task-template/actions/runs/37233061266)
+was the first to pass on all three platforms, with every task executed on
+Windows, including the C and C++ sanitizer tests. Check later runs as the code
+and tool versions change.
 
 ## Review instructions for the next coding CLI
 
@@ -381,6 +402,6 @@ tool versions, manifests, locks, formatting, and possibly code.
 Report requirements gaps with the relevant file or task evidence. Distinguish
 implemented behavior, observed test results, intended platform capabilities, and
 assumptions about external services. Focus the review on report delivery,
-version identity, durable audit evidence, PR metrics, and the actual Windows
-failure. Preserve the agreed advisory policies and PoC scope unless the user
+version identity, durable audit evidence, PR metrics, and required status
+checks. Preserve the agreed advisory policies and PoC scope unless the user
 explicitly changes them.

@@ -64,10 +64,11 @@ the [golangci-lint commands](https://golangci-lint.run/docs/configuration/cli/).
 
 `rust-toolchain.toml` installs Clippy and rustfmt as components of the exact
 Rust release. The package's `Cargo.toml` enables Clippy's standard and pedantic
-groups, plus checks for `unwrap`, `expect`, debug macros, unfinished code, and
-undocumented unsafe blocks. Unsafe code is forbidden; missing documentation and
-unused lifetimes or qualifications are diagnosed. All targets and features are
-checked with `--locked` and `-D warnings`.
+groups, plus checks for `unwrap`, `expect`, debug macros, unfinished code,
+undocumented unsafe blocks, and lint attributes without a `reason`. Unsafe code
+is forbidden; missing documentation and unused lifetimes or qualifications are
+diagnosed. All targets and features are checked with `--locked` and
+`-D warnings`.
 
 Clippy's entire restriction group is deliberately not enabled: its rules can
 conflict with each other and with valid code. Nursery rules remain opt-in. See

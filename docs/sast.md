@@ -94,9 +94,12 @@ includes module suffixes and succeeds when the expected findings and negative
 examples match. Change a source, sink, or safe alternative only alongside its
 regression fixtures, and rerun the tests when maintenance updates Opengrep.
 
-The engine supports inline `nosemgrep: <rule-id>` suppressions. Any use should
-name the exact rule and explain the reviewed reason in a nearby comment.
-Fixtures use expectation annotations rather than suppressions.
+Inline suppressions must use the form `nosemgrep: <rule-id> -- <reason>`, or
+carry the reason in a comment directly above. `task check:suppressions` rejects
+other forms and records each suppression in `reports/suppressions.json`.
+Opengrep honors the marker anywhere on a line, even inside a string literal, so
+the register reports those uses too. Fixtures use expectation annotations rather
+than suppressions. See [suppressions](suppressions.md).
 
 See [Opengrep](https://github.com/opengrep/opengrep) and the compatible
 [rule test annotations](https://docs.semgrep.dev/writing-rules/testing-rules).

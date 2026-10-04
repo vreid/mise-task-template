@@ -59,9 +59,15 @@ does not change the separate clang-tidy selection.
 Unsafe-buffer diagnostics remain enabled. C's NUL-terminated string traversal,
 bounded test-array iteration, and validated `argv` access have narrow
 `#pragma clang unsafe_buffer_usage` regions with their safety contracts stated
-in comments. C++ converts `argv` to a span at the validated boundary and uses
-bounded containers, string views, and range iteration elsewhere. These local
-exceptions do not disable sanitizer instrumentation.
+in comments. `check:suppressions` requires that reason and records each region.
+C++ converts `argv` to a span at the validated boundary and uses bounded
+containers, string views, and range iteration elsewhere. These local exceptions
+do not disable sanitizer instrumentation.
+
+Both C++ entry points catch every exception in a function-try-block and return
+1, like other output failures. On Windows, clang-tidy follows the MSVC standard
+library's stream code into paths that can throw, and `bugprone-exception-escape`
+requires `main` not to let them escape.
 
 ## clang-tidy
 
@@ -113,9 +119,10 @@ same mise installation.
 ASan also enables stack-use-after-scope and always-on stack-use-after-return
 instrumentation. UBSan uses the `undefined` group. Recovery is disabled, so a
 finding terminates the test and fails the task. Task enables UBSan stack traces.
-Only executed code is covered; these checks complement static analysis rather
-than prove memory safety. See
-[ASan](https://clang.llvm.org/docs/AddressSanitizer.html) and
+On Windows, the test executables load Clang's dynamic sanitizer runtime, so the
+test helper adds the compiler's runtime directory to `PATH`. Only executed code
+is covered; these checks complement static analysis rather than prove memory
+safety. See [ASan](https://clang.llvm.org/docs/AddressSanitizer.html) and
 [UBSan](https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html).
 
 MSan is deferred. It does not support this macOS environment, must run

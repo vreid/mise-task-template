@@ -6,7 +6,7 @@ include it, so pre-commit and maintenance use the same policy.
 | Task            | Purpose                                                            |
 | --------------- | ------------------------------------------------------------------ |
 | `check:scc`     | Report size and estimated complexity, sorted within each language. |
-| `check:lizard`  | Fail when a function or top-level code exceeds a configured limit. |
+| `check:lizard`  | Write per-function metrics, then fail when a limit is exceeded.    |
 | `check:metrics` | Run both tools.                                                    |
 
 ## Required limits
@@ -27,6 +27,12 @@ allowed. Lizard prints the file, line, function, and measured values when
 something exceeds a limit. Fixing these findings requires a reviewed refactor;
 there is no automatic complexity fix.
 
+Before checking the limits, Lizard writes every function's NLOC, cyclomatic
+complexity, token count, parameter count, and length to
+`reports/complexity.csv`, including functions within the limits. The report
+exists even when the check fails, and the console prints the function count and
+highest CCN. See [analysis reports](reports.md).
+
 The `outside` extension also measures code outside named functions, covering
 top-level script logic. It may label that code `*global*`. Its NLOC count also
 includes top-level declarations and data, and physical length can span a file.
@@ -39,8 +45,10 @@ algorithms in different languages.
 
 The small Python adapter registers `.mts` and `.cts` with Lizard's existing
 TypeScript reader. Lizard 1.24 otherwise skips these suffixes during discovery.
-It runs with the interpreter from Lizard's isolated tool environment. Source
-paths and line numbers remain intact; sources are neither renamed nor rewritten.
+It runs with the interpreter from Lizard's isolated tool environment, found
+through the `pyvenv.cfg` beside mise's Lizard launcher: on Unix the launcher is
+a symlink into that environment, on Windows a standalone copy. Source paths and
+line numbers remain intact; sources are neither renamed nor rewritten.
 
 File discovery respects Git's nested ignores, excludes symlinks and deleted
 files, and includes tracked files even if subsequently ignored. Supplying
@@ -50,10 +58,12 @@ example languages. Bash is covered by ShellCheck and scc, not Lizard.
 
 Prefer splitting responsibilities, using guard clauses, or simplifying input
 types when a limit is exceeded. Where a metric misrepresents necessary code,
-Lizard supports a local `#lizard forgives(metric)` comment. Name the specific
-metric and explain the reason; avoid blanket test exclusions or raising the
+Lizard supports a local `#lizard forgives(metric) -- reason` comment;
+`check:suppressions` rejects forgiveness without a metric or reason and records
+it. In `#`-comment languages such as Python, Lizard forgives the whole function
+even when a metric is named. Avoid blanket test exclusions or raising the
 repository limit to accommodate one function. No exceptions are currently
-configured.
+configured. See [suppressions](suppressions.md).
 
 These are maintainability signals. Lizard uses partial parsers, does not expand
 C/C++ macros, and can misinterpret complex syntax. Syntax and semantic checks

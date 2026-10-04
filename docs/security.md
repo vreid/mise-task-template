@@ -9,19 +9,20 @@ Opengrep also checks application source for command injection in all seven
 languages. See the [source security proof of concept](sast.md) for its rules,
 positive and negative fixtures, and OWASP/CWE coverage limits.
 
-| Task                         | Behavior                                                                                            |
-| ---------------------------- | --------------------------------------------------------------------------------------------------- |
-| `task check:secrets`         | Scan the working tree for secrets with Betterleaks.                                                 |
-| `task check:sast`            | Test local Opengrep rules, then fail on matching source vulnerabilities.                            |
-| `task check:secrets:history` | Scan all locally available Git history.                                                             |
-| `task check:licenses`        | Generate a fresh repository inventory with Syft and warn about Grant policy findings.               |
-| `task check:vulnerabilities` | Scan with Grype; fail on High/Critical findings with available fixes, subject to scoped exceptions. |
-| `task check:audit`           | On-demand pnpm audit for High/Critical npm vulnerabilities, including dependency paths.             |
-| `task check`                 | Run analysis and security checks; formatting and license findings are advisory.                     |
-| `task verify`                | Run the same checks and require correct formatting; licenses remain advisory.                       |
-| `task maintenance:licenses`  | Refresh the checked-in OSI license policy from SPDX.                                                |
-| `task maintenance:deps`      | Update all package.json dependency groups to latest stable releases, including major upgrades.      |
-| `task maintenance`           | Update tools, dependencies, and the license policy, then fix and verify.                            |
+| Task                         | Behavior                                                                                           |
+| ---------------------------- | -------------------------------------------------------------------------------------------------- |
+| `task check:secrets`         | Scan the working tree for secrets with Betterleaks; inline allow comments are ignored.             |
+| `task check:sast`            | Test local Opengrep rules, then fail on matching source vulnerabilities.                           |
+| `task check:secrets:history` | Scan Git history reachable from `HEAD` (`HISTORY=--all` for every ref); `verify` runs it.          |
+| `task check:sbom`            | Inventory the repository with Syft and write CycloneDX and SPDX SBOMs to `reports/`.               |
+| `task check:licenses`        | Evaluate the repository SBOM with Grant and warn about policy findings.                            |
+| `task check:vulnerabilities` | Scan the SBOM with Grype; fail on High/Critical findings with fixes, subject to scoped exceptions. |
+| `task check:audit`           | On-demand pnpm audit for High/Critical npm vulnerabilities, including dependency paths.            |
+| `task check`                 | Run analysis and security checks; formatting and license findings are advisory.                    |
+| `task verify`                | Run the same checks and require correct formatting; licenses remain advisory.                      |
+| `task maintenance:licenses`  | Refresh the checked-in OSI license policy from SPDX.                                               |
+| `task maintenance:deps`      | Update all package.json dependency groups to latest stable releases, including major upgrades.     |
+| `task maintenance`           | Update tools, dependencies, and the license policy, then fix and verify.                           |
 
 The pre-commit hook runs `task check`, so secrets and unsuppressed High or
 Critical vulnerabilities with published fixes block a commit. License findings
@@ -72,10 +73,21 @@ binary formats are skipped. Matching secrets are redacted, and live credential
 validation is explicitly disabled. Scanning does not contact providers to test
 credentials.
 
+Inline `betterleaks:allow` and `gitleaks:allow` comments are ignored because
+they name neither a rule nor a reason. Accept a finding by adding its
+fingerprint, with a reason, to `.betterleaksignore`; see
+[accepting secret findings](suppressions.md#accepting-secret-findings). Reports
+are generated before the scan, so it also covers files meant to leave the
+repository.
+
 History scanning is separate because checking the current tree cannot find a
-secret that has already been deleted. The history task scans all local refs; a
-shallow clone only contains part of the history. A clean result is limited to
-the scanner's detection rules and the files and history available to it.
+secret that has already been deleted. `task verify` scans every commit reachable
+from `HEAD`, which for a pull request includes all of its commits, so a secret
+added in one commit and removed in the next still fails. The workflow checks out
+full history for this. The task refuses to run in a shallow clone, which would
+silently hide older commits. `task check:secrets:history HISTORY=--all` scans
+every local ref instead. A clean result is limited to the scanner's detection
+rules and the files and history available to it.
 
 ## License policy
 
@@ -161,7 +173,7 @@ Detailed matching explanations for unsuppressed findings are also available from
 Grype's JSON report (replace `VULNERABILITY_ID` with a reported ID):
 
 ```bash
-grype sbom:/tmp/repository-sbom.json --config .grype.yaml \
+grype sbom:reports/sbom.syft.json --config .grype.yaml \
   --output json --file /tmp/repository-vulnerabilities.json
 grype explain --id VULNERABILITY_ID < /tmp/repository-vulnerabilities.json
 ```
@@ -175,7 +187,9 @@ task output.
 Syft captures Go function symbols from binaries so Grype can refine matches
 where the vulnerability data identifies affected functions. When symbols or
 function data are unavailable, matching can fall back to package-level
-information.
+information. Syft records no symbols for Windows PE binaries, so the native
+Windows job matches Go binaries by module only; see the Windows exceptions
+below.
 
 ## Inventory coverage
 
@@ -193,14 +207,17 @@ Syft uses its normal local cache. Configure private registry/proxy settings
 before scanning private dependencies; an offline scan may fail for missing
 metadata. The Go option that executes Go tooling is disabled.
 
-The temporary Syft JSON inventory is created outside the repository, consumed by
-Grant or Grype, and removed even when a check fails. For an inspectable report,
-keep one outside the scan tree:
+`task check:sbom` runs Syft once per Task invocation and writes the inventory to
+`reports/` as CycloneDX JSON, SPDX JSON, and Syft JSON. Grant and Grype both
+evaluate the Syft JSON, so the exported SBOM is exactly the inventory that was
+gated. Syft excludes `reports/` itself, and file metadata cataloging is off
+because the CycloneDX output would otherwise name files by absolute host path.
+See [analysis reports](reports.md) for naming, versioning, and the assumed
+downstream systems. To re-evaluate an existing inventory:
 
 ```bash
-syft scan dir:. --config .syft.yaml -o syft-json=/tmp/repository-sbom.json
-grant check --config .grant.yaml /tmp/repository-sbom.json
-grype sbom:/tmp/repository-sbom.json --config .grype.yaml
+grant check --config .grant.yaml reports/sbom.syft.json
+grype sbom:reports/sbom.syft.json --config .grype.yaml
 ```
 
 This is a package inventory, not a license audit of every source file. Cataloger
@@ -237,6 +254,16 @@ advisory, for different reasons:
   version, and binary path inside TypeScript 7.0.2. It does not match a
   standalone Go dependency, another binary, or a different TypeScript version.
   Remove the exception after updating to a release containing the fix.
+
+On native Windows, the same TypeScript 7.0.2 compiler (`tsc.exe`, built with
+go1.26.4) additionally reports seven High Go standard library advisories:
+GO-2026-4970, GO-2026-5026, GO-2026-5942, GO-2026-5972, GO-2026-6088,
+GO-2026-6089, and GO-2026-6090. Without symbols, Grype matches them by module;
+Linux and macOS match the same release by function and report none of them, and
+none is Windows-specific. `.grype.yaml` ignores exactly these advisories for
+that package version at the Windows compiler path, so the rules never apply on
+Linux or macOS and expire with a TypeScript upgrade. Three Medium advisories
+remain visible without failing.
 
 Results can change when dependencies or the vulnerability database change. A
 successful scan with suppressed findings means the configured gate passed, not

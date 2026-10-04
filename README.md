@@ -29,10 +29,14 @@ shows results in the task terminal. mise must be available on VS Code's PATH.
 
 GitHub Actions runs the [workflow](.github/workflows/verify.yml) on pull
 requests, pushes to `main`, and manual dispatch. Its Linux, native Windows, and
-macOS jobs install locked tools through mise, then run only `task verify`. That
-task first restores locked dependencies before building, checking, and testing.
-Make all three `verify` matrix checks required in the repository's branch rules
-to block merging when verification fails.
+macOS jobs check out full history, install locked tools through mise, then run
+only `task verify`. That task first restores locked dependencies before
+building, checking, and testing. Make all three `verify` matrix checks required
+in the repository's branch rules to block merging when verification fails.
+
+`check` and `verify` write SBOMs, per-function complexity metrics, and the
+register of inline suppressions to the ignored `reports/` folder. Another system
+is assumed to collect them; see [analysis reports](docs/reports.md).
 
 `task check:actions` runs [actionlint](https://github.com/rhysd/actionlint),
 including its ShellCheck integration. Both `check` and `verify` include it;
@@ -43,16 +47,16 @@ and their commit SHA pins, and is included in `maintenance`.
 
 ## Commands
 
-| Command                              | Purpose                                                                       |
-| ------------------------------------ | ----------------------------------------------------------------------------- |
-| `task setup`                         | Restore selected tools, locked dependencies, and Git hooks.                   |
-| `task build`                         | Build the C, C++, C#, Go, and Rust examples.                                  |
-| `task test`                          | Run tests for all seven examples.                                             |
-| `task run:rust TEXT="one two three"` | Run one example; prints `3`.                                                  |
-| `task check`                         | Analyze the repository; formatting and license findings are advisory.         |
-| `task verify`                        | Restore locked dependencies, build, analyze, enforce formatting, and test.    |
-| `task fix`                           | Apply supported formatting and lint fixes.                                    |
-| `task maintenance`                   | Update selected tool versions and npm dependencies, restore, fix, and verify. |
+| Command                              | Purpose                                                                         |
+| ------------------------------------ | ------------------------------------------------------------------------------- |
+| `task setup`                         | Restore selected tools, locked dependencies, and Git hooks.                     |
+| `task build`                         | Build the C, C++, C#, Go, and Rust examples.                                    |
+| `task test`                          | Run tests for all seven examples.                                               |
+| `task run:rust TEXT="one two three"` | Run one example; prints `3`.                                                    |
+| `task check`                         | Analyze the repository and write reports; formatting and licenses are advisory. |
+| `task verify`                        | Restore locked dependencies, build, analyze, enforce formatting, and test.      |
+| `task fix`                           | Apply supported formatting and lint fixes.                                      |
+| `task maintenance`                   | Update selected tool versions and npm dependencies, restore, fix, and verify.   |
 
 Language-specific build, test, and run tasks use the directory names below as
 suffixes, such as `test:typescript` and `build:cpp`. TypeScript runs directly in
@@ -73,6 +77,7 @@ tasks/         # One shared Taskfile per verb
 scripts/       # Helpers for longer operations
 security/      # Opengrep rules and unexecuted security regression fixtures
 docs/          # Behavior and policy details
+reports/       # Generated SBOMs, metrics, and suppression register (ignored)
 ```
 
 Each example owns its code and project files. The root owns tool selection, task
@@ -81,7 +86,9 @@ orchestration, hooks, and shared policies. Details:
 [language checks](docs/language-checks.md), [C/C++ checks](docs/c-cpp.md),
 [security checks](docs/security.md), and [source security rules](docs/sast.md).
 Repository size and maintainability checks are described in
-[code metrics](docs/code-metrics.md).
+[code metrics](docs/code-metrics.md). Generated outputs are described in
+[analysis reports](docs/reports.md), and the rules for inline exceptions in
+[suppressions](docs/suppressions.md).
 
 The [requirements handover](docs/requirements-handover.md) records the agreed
 PoC scope, requirement coverage, remaining work, and validation evidence for an
