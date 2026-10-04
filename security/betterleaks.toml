@@ -1,0 +1,7 @@
+# Betterleaks' built-in rules, unchanged. Both secret scans pass this file
+# explicitly, which also stops Betterleaks from loading a .betterleaks.toml or
+# .gitleaks.toml dropped into the scanned directory: such a file could silence
+# every finding without anyone noticing. Accept individual findings by
+# fingerprint, with a reason, in .betterleaksignore instead.
+[extend]
+useDefault = true

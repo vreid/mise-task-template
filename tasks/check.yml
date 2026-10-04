@@ -118,10 +118,11 @@ tasks:
   secrets:
     desc: Scan the working tree for secrets with Betterleaks
     # Inline allow comments carry no rule or reason; accept findings by
-    # fingerprint with a reason in .betterleaksignore instead.
+    # fingerprint with a reason in .betterleaksignore instead. The explicit
+    # config keeps a dropped-in .gitleaks.toml from reconfiguring the scan.
     cmds:
-      - betterleaks dir . --redact=100 --validation=false --no-banner
-        --ignore-gitleaks-allow
+      - betterleaks dir . --config security/betterleaks.toml --redact=100
+        --validation=false --no-banner --ignore-gitleaks-allow
 
   sast:
     desc: Test the Opengrep rules and reject matching source vulnerabilities
@@ -143,8 +144,9 @@ tasks:
           A shallow clone hides older commits. Run git fetch --unshallow, or
           check out with fetch-depth 0.
     cmds:
-      - betterleaks git . --log-opts="$HISTORY_RANGE" --redact=100
-        --validation=false --no-banner --ignore-gitleaks-allow
+      - betterleaks git . --log-opts="$HISTORY_RANGE" --config
+        security/betterleaks.toml --redact=100 --validation=false --no-banner
+        --ignore-gitleaks-allow
 
   suppressions:
     desc:
