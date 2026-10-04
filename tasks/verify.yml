@@ -13,6 +13,7 @@ tasks:
       - task: :check:actions
       - task: :check:sast
       # Generate reports before the secret scan so exported files are covered.
+      - task: :check:suppressions
       - task: :check:sbom
       - task: :check:secrets
       # Commits being verified must not add secrets, even ones deleted later.

@@ -1,0 +1,242 @@
+{
+  "committed": {
+    "app.py": "import os\nimport subprocess\n\n\ndef run(command: str) -> None:\n    os.system(command)  # noqa: S605 -- fixed maintenance command\n    subprocess.run(command, shell=True)  # noqa\n    os.system(command)  # noqa: S605\n    # nosemgrep: poc.python.environment-to-shell -- reviewed constant input\n    os.system(command + \" nosemgrep\")\n",
+    "native.c": "#include <stdlib.h>\n\nint run(void) {\n  return system(\"ls\"); // NOLINT(cert-env33-c) -- fixed command\n}\n\nint bare(void) {\n  return system(\"ls\"); // NOLINT\n}\n\nint blanket(void) {\n  return system(\"ls\"); // NOLINT(bugprone-*) -- all bugprone checks\n}\n\n// Arguments are validated by the caller.\n#pragma clang unsafe_buffer_usage begin\n#pragma clang unsafe_buffer_usage end\n#pragma clang diagnostic ignored \"-Wformat-nonliteral\" // format is fixed\n#pragma clang diagnostic ignored \"-Weverything\" // silence it all\n",
+    "lib.rs": "#[expect(\n    clippy::needless_return,\n    reason = \"keeps the example explicit\"\n)]\nfn explicit() -> i32 {\n    return 1;\n}\n\n// Not accepted: Rust needs the attribute's own reason.\n#[allow(clippy::needless_return)]\nfn implicit() -> i32 {\n    return 2;\n}\n\n#[allow(clippy::all, reason = \"too broad\")]\nfn broad() {}\n",
+    "Program.cs": "using System.Diagnostics.CodeAnalysis;\n\n#pragma warning disable CA5394 // deterministic test data only\n#pragma warning disable\n\n[SuppressMessage(\n    \"Security\",\n    \"CA5394:Do not use insecure randomness\",\n    Justification = \"test data only\")]\ninternal static class Program { }\n",
+    "main.go": "package main\n\nimport \"os\"\n\nfunc main() {\n\t_ = os.Remove(\"tmp\") //nolint:errcheck // cleanup is best effort\n\t_ = os.Remove(\"tmp\") //nolint\n\t_ = os.Remove(\"tmp\") //nolint:all // everything\n}\n",
+    "tool.ts": "export function run(code: string): unknown {\n  // oxlint-disable-next-line no-eval -- trusted build-time input\n  return eval(code);\n}\n\nexport function bare(code: string): unknown {\n  // eslint-disable-next-line\n  return eval(code);\n}\n\n// @ts-expect-error -- legacy global without types\nexport const legacy: number = globalThis.legacyValue;\n\n// @ts-ignore\nexport const ignored: number = globalThis.ignoredValue;\n\n// #lizard forgives(CCN) -- table-driven dispatch\nexport function table(): void {}\n",
+    "run.sh": "#!/usr/bin/env bash\nwords=\"a b\"\n# shellcheck disable=SC2086 # word splitting is intended\necho $words\n# shellcheck disable=all\necho $words\n",
+    "README.md": "# Fixture\n\n<!-- markdownlint-disable-next-line MD013 -- generated table row -->\nlong line\n\n<!-- markdownlint-disable -->\n",
+    ".betterleaksignore": "# Rotated test token; see the incident record.\nconfig.ts:github-pat:1\nconfig.ts:github-pat:2\n"
+  },
+  "uncommitted": {
+    "late.go": "package main\n\nvar _ = 1 //nolint:gochecknoglobals // demonstrates uncommitted attribution\n"
+  },
+  "expected": [
+    {
+      "file": "app.py",
+      "line": 6,
+      "tool": "ruff",
+      "rules": ["S605"],
+      "valid": true
+    },
+    {
+      "file": "app.py",
+      "line": 7,
+      "tool": "ruff",
+      "rules": [],
+      "valid": false
+    },
+    {
+      "file": "app.py",
+      "line": 8,
+      "tool": "ruff",
+      "rules": ["S605"],
+      "valid": false
+    },
+    {
+      "file": "app.py",
+      "line": 9,
+      "tool": "opengrep",
+      "rules": ["poc.python.environment-to-shell"],
+      "valid": true
+    },
+    {
+      "file": "app.py",
+      "line": 10,
+      "tool": "opengrep",
+      "rules": [],
+      "valid": false
+    },
+    {
+      "file": "native.c",
+      "line": 4,
+      "tool": "clang-tidy",
+      "rules": ["cert-env33-c"],
+      "valid": true
+    },
+    {
+      "file": "native.c",
+      "line": 8,
+      "tool": "clang-tidy",
+      "rules": [],
+      "valid": false
+    },
+    {
+      "file": "native.c",
+      "line": 12,
+      "tool": "clang-tidy",
+      "rules": ["bugprone-*"],
+      "valid": false
+    },
+    {
+      "file": "native.c",
+      "line": 16,
+      "tool": "clang",
+      "rules": ["unsafe_buffer_usage"],
+      "valid": true
+    },
+    {
+      "file": "native.c",
+      "line": 18,
+      "tool": "clang",
+      "rules": ["-Wformat-nonliteral"],
+      "valid": true
+    },
+    {
+      "file": "native.c",
+      "line": 19,
+      "tool": "clang",
+      "rules": ["-Weverything"],
+      "valid": false
+    },
+    {
+      "file": "lib.rs",
+      "line": 1,
+      "tool": "rust",
+      "rules": ["clippy::needless_return"],
+      "valid": true
+    },
+    {
+      "file": "lib.rs",
+      "line": 10,
+      "tool": "rust",
+      "rules": ["clippy::needless_return"],
+      "valid": false
+    },
+    {
+      "file": "lib.rs",
+      "line": 15,
+      "tool": "rust",
+      "rules": ["clippy::all"],
+      "valid": false
+    },
+    {
+      "file": "Program.cs",
+      "line": 3,
+      "tool": "dotnet",
+      "rules": ["CA5394"],
+      "valid": true
+    },
+    {
+      "file": "Program.cs",
+      "line": 4,
+      "tool": "dotnet",
+      "rules": [],
+      "valid": false
+    },
+    {
+      "file": "Program.cs",
+      "line": 6,
+      "tool": "dotnet",
+      "rules": ["CA5394"],
+      "valid": true
+    },
+    {
+      "file": "main.go",
+      "line": 6,
+      "tool": "golangci-lint",
+      "rules": ["errcheck"],
+      "valid": true
+    },
+    {
+      "file": "main.go",
+      "line": 7,
+      "tool": "golangci-lint",
+      "rules": [],
+      "valid": false
+    },
+    {
+      "file": "main.go",
+      "line": 8,
+      "tool": "golangci-lint",
+      "rules": ["all"],
+      "valid": false
+    },
+    {
+      "file": "tool.ts",
+      "line": 2,
+      "tool": "oxlint",
+      "rules": ["no-eval"],
+      "valid": true
+    },
+    {
+      "file": "tool.ts",
+      "line": 7,
+      "tool": "oxlint",
+      "rules": [],
+      "valid": false
+    },
+    {
+      "file": "tool.ts",
+      "line": 11,
+      "tool": "typescript",
+      "rules": ["expect-error"],
+      "valid": true
+    },
+    {
+      "file": "tool.ts",
+      "line": 14,
+      "tool": "typescript",
+      "rules": [],
+      "valid": false
+    },
+    {
+      "file": "tool.ts",
+      "line": 17,
+      "tool": "lizard",
+      "rules": ["CCN"],
+      "valid": true
+    },
+    {
+      "file": "run.sh",
+      "line": 3,
+      "tool": "shellcheck",
+      "rules": ["SC2086"],
+      "valid": true
+    },
+    {
+      "file": "run.sh",
+      "line": 5,
+      "tool": "shellcheck",
+      "rules": [],
+      "valid": false
+    },
+    {
+      "file": "README.md",
+      "line": 3,
+      "tool": "markdownlint",
+      "rules": ["MD013"],
+      "valid": true
+    },
+    {
+      "file": "README.md",
+      "line": 6,
+      "tool": "markdownlint",
+      "rules": [],
+      "valid": false
+    },
+    {
+      "file": ".betterleaksignore",
+      "line": 2,
+      "tool": "betterleaks",
+      "rules": ["github-pat"],
+      "valid": true
+    },
+    {
+      "file": ".betterleaksignore",
+      "line": 3,
+      "tool": "betterleaks",
+      "rules": ["github-pat"],
+      "valid": false
+    },
+    {
+      "file": "late.go",
+      "line": 3,
+      "tool": "golangci-lint",
+      "rules": ["gochecknoglobals"],
+      "valid": true
+    }
+  ]
+}

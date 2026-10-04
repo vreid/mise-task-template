@@ -12,6 +12,7 @@ tasks:
       - task: rust
       - task: python
       - task: tooling
+      - task: suppressions
       - task: sast
 
   typescript:
@@ -56,6 +57,12 @@ tasks:
     desc: Test required versus advisory Clang diagnostics with the real compiler
     cmds:
       - node --test scripts/clang-warnings.test.mts
+
+  suppressions:
+    desc:
+      Test the suppression register against fixtures in a temporary repository
+    cmds:
+      - node --test scripts/suppressions.test.mts
 
   sast:
     desc: Test Opengrep findings and safe alternatives in all seven languages

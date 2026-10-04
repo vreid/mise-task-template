@@ -1,0 +1,131 @@
+{
+  "comment": "^\\s*(?://+!?|/\\*+|\\*+(?!/)|#+(?=\\s|$)|<!--)\\s*(?<text>.*?)\\s*(?:\\*/|-->)?\\s*$",
+  "directives": [
+    {
+      "tool": "opengrep",
+      "note": "Opengrep honors the marker anywhere on a line, even inside strings.",
+      "files": "\\.(?:[ch]|cc|cpp|cxx|hh|hpp|hxx|ipp|inl|cs|go|rs|py|pyi|pyw|[cm]?[jt]sx?)$",
+      "marker": "\\bnosem(?:grep)?\\b",
+      "form": "\\bnosem(?:grep)?\\s*[:=]\\s*(?<rules>\\w[\\w.-]*(?:\\s*,\\s*\\w[\\w.-]*)*)(?:\\s+--\\s+(?<reason>.*\\S))?",
+      "flags": "iu",
+      "expected": "nosemgrep: <rule-id> -- <reason>"
+    },
+    {
+      "tool": "lizard",
+      "note": "In #-comment languages, Lizard forgives the whole function.",
+      "files": "\\.(?:[ch]|cc|cpp|cxx|hh|hpp|hxx|ipp|inl|cs|go|rs|py|pyi|pyw|[cm]?[jt]sx?)$",
+      "marker": "\\blizard\\s+forgives?\\b",
+      "form": "\\blizard\\s+(?:forgives?\\s*\\((?<rules>[^)]*\\w[^)]*)\\)|forgive\\s+(?<scope>global))(?:\\s+--\\s+(?<reason>.*\\S))?",
+      "expected": "#lizard forgives(<metric>) -- <reason>"
+    },
+    {
+      "tool": "oxlint",
+      "files": "\\.[cm]?[jt]sx?$",
+      "marker": "\\b(?:eslint|oxlint)-disable(?:-next-line|-line)?\\b",
+      "form": "\\b(?:eslint|oxlint)-disable(?:-next-line|-line)?\\s+(?<rules>[\\w@][\\w@/-]*(?:\\s*,\\s*[\\w@][\\w@/-]*)*)(?:\\s+--\\s+(?<reason>.*\\S))?",
+      "expected": "oxlint-disable-next-line <rule> -- <reason>"
+    },
+    {
+      "tool": "typescript",
+      "note": "TypeScript cannot name the suppressed error, only state a reason.",
+      "files": "\\.[cm]?[jt]sx?$",
+      "marker": "@ts-(?:expect-error|ignore|nocheck)\\b",
+      "form": "@ts-(?<scope>expect-error)\\b(?:\\s*(?:--|:)?\\s+(?<reason>.*\\S))?",
+      "expected": "@ts-expect-error -- <reason>"
+    },
+    {
+      "tool": "ruff",
+      "files": "\\.py[iw]?$",
+      "marker": "#\\s*(?:(?:ruff|flake8):\\s*)?noqa\\b",
+      "form": "#\\s*(?:ruff:\\s*)?noqa\\s*:\\s*(?<rules>[a-z]+\\d+(?:[\\s,]+[a-z]+\\d+)*)(?:\\s+--\\s+(?<reason>.*\\S))?",
+      "flags": "iu",
+      "expected": "# noqa: <code> -- <reason>"
+    },
+    {
+      "tool": "golangci-lint",
+      "note": "nolintlint already requires this form; the register records it.",
+      "files": "\\.go$",
+      "marker": "//\\s*nolint\\b",
+      "form": "//nolint:(?<rules>[\\w-]+(?:,[\\w-]+)*)(?:\\s*//\\s*(?<reason>.*\\S))?",
+      "blanket": "^all$",
+      "nativeReason": true,
+      "expected": "//nolint:<linter> // <reason>"
+    },
+    {
+      "tool": "rust",
+      "note": "Clippy's allow_attributes_without_reason enforces the same field.",
+      "files": "\\.rs$",
+      "marker": "#!?\\[\\s*(?:cfg_attr\\s*\\(.*,\\s*)?(?:allow|expect)\\s*\\(",
+      "form": "\\b(?:allow|expect)\\s*\\(\\s*(?<rules>(?!reason\\b)[\\w:]+(?:\\s*,\\s*(?!reason\\b)[\\w:]+)*)(?:\\s*,\\s*reason\\s*=\\s*\"(?<reason>[^\"]*)\")?",
+      "blanket": "^(?:warnings|clippy::(?:all|pedantic|nursery|restriction|cargo|style|complexity|perf|correctness|suspicious))$",
+      "nativeReason": true,
+      "multiline": true,
+      "expected": "#[expect(<lint>, reason = \"<reason>\")]"
+    },
+    {
+      "tool": "dotnet",
+      "files": "\\.cs$",
+      "marker": "^\\s*#\\s*pragma\\s+warning\\s+disable\\b",
+      "form": "#\\s*pragma\\s+warning\\s+disable\\s+(?<rules>[a-z]+\\d+(?:\\s*,\\s*[a-z]+\\d+)*)(?:\\s*//\\s*(?<reason>.*\\S))?",
+      "flags": "iu",
+      "expected": "#pragma warning disable <id> // <reason>"
+    },
+    {
+      "tool": "dotnet",
+      "files": "\\.cs$",
+      "marker": "\\[\\s*(?:(?:assembly|module)\\s*:\\s*)?(?:[\\w.]+\\.)?(?:Unconditional)?SuppressMessage(?:Attribute)?\\s*\\(",
+      "form": "SuppressMessage(?:Attribute)?\\s*\\(\\s*\"[^\"]*\"\\s*,\\s*\"(?<rules>[^\":]+)[^\"]*\"(?:[^)]*?Justification\\s*=\\s*\"(?<reason>[^\"]*)\")?",
+      "nativeReason": true,
+      "multiline": true,
+      "expected": "[SuppressMessage(\"<category>\", \"<id>\", Justification = \"<reason>\")]"
+    },
+    {
+      "tool": "clang-tidy",
+      "note": "clang-tidy also honors the marker outside comments.",
+      "files": "\\.(?:[ch]|cc|cpp|cxx|hh|hpp|hxx|ipp|inl)$",
+      "marker": "\\bNOLINT(?:NEXTLINE|BEGIN)?\\b",
+      "form": "\\bNOLINT(?:NEXTLINE|BEGIN)?\\((?<rules>[^)]*\\w[^)]*)\\)(?:\\s*--\\s*(?<reason>.*\\S))?",
+      "blanket": "\\*",
+      "expected": "// NOLINT(<check>) -- <reason>"
+    },
+    {
+      "tool": "clang",
+      "files": "\\.(?:[ch]|cc|cpp|cxx|hh|hpp|hxx|ipp|inl)$",
+      "marker": "^\\s*#\\s*pragma\\s+(?:clang|GCC)\\s+diagnostic\\s+ignored\\b",
+      "form": "#\\s*pragma\\s+(?:clang|GCC)\\s+diagnostic\\s+ignored\\s+\"(?<rules>-W[^\"]+)\"(?:\\s*//\\s*(?<reason>.*\\S))?",
+      "blanket": "^-W(?:everything|all|extra)$",
+      "expected": "#pragma clang diagnostic ignored \"-W<warning>\" // <reason>"
+    },
+    {
+      "tool": "clang",
+      "files": "\\.(?:[ch]|cc|cpp|cxx|hh|hpp|hxx|ipp|inl)$",
+      "marker": "^\\s*#\\s*pragma\\s+clang\\s+unsafe_buffer_usage\\s+begin\\b",
+      "form": "#\\s*pragma\\s+clang\\s+(?<scope>unsafe_buffer_usage)\\s+begin(?:\\s*//\\s*(?<reason>.*\\S))?",
+      "expected": "#pragma clang unsafe_buffer_usage begin // <reason>"
+    },
+    {
+      "tool": "shellcheck",
+      "files": "\\.(?:sh|bash|ksh|zsh)$|^\\.github/workflows/[^/]+\\.ya?ml$",
+      "shebang": "^#!.*\\b(?:ba|da|k|z)?sh\\b",
+      "marker": "#\\s*shellcheck\\s+disable\\s*=",
+      "form": "#\\s*shellcheck\\s+disable\\s*=\\s*(?<rules>(?:SC)?\\d+(?:\\s*,\\s*(?:SC)?\\d+)*)(?:\\s+#\\s*(?<reason>.*\\S))?",
+      "expected": "# shellcheck disable=SC<code> # <reason>"
+    },
+    {
+      "tool": "markdownlint",
+      "files": "\\.(?:md|markdown)$",
+      "marker": "<!--\\s*markdownlint-(?:disable(?:-next-line|-line|-file)?|configure-file)\\b",
+      "form": "markdownlint-(?:disable(?:-next-line|-line|-file)?\\s+(?<rules>[a-z\\d][\\w-]*(?:[\\s,]+[a-z\\d][\\w-]*)*)(?:\\s+--\\s+(?<reason>.*?))?\\s*-->|(?<scope>configure-file)\\b)",
+      "flags": "iu",
+      "expected": "markdownlint-disable-next-line <rule> -- <reason>, in an HTML comment"
+    },
+    {
+      "tool": "betterleaks",
+      "note": "Inline allow comments are ignored; accepted secrets live here.",
+      "files": "(?:^|/)\\.(?:better|git)leaksignore$",
+      "marker": "^\\s*[^#\\s]",
+      "form": "^(?:[\\da-f]{7,40}:)?.+:(?<rules>[\\w.-]+):\\d+\\s*$",
+      "expected": "a report fingerprint with a # <reason> line directly above"
+    }
+  ]
+}

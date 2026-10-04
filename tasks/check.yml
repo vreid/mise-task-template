@@ -18,6 +18,7 @@ tasks:
       - task: actions
       - task: sast
       # Generate reports before the secret scan so exported files are covered.
+      - task: suppressions
       - task: sbom
       - task: secrets
       - task: licenses
@@ -143,6 +144,13 @@ tasks:
     cmds:
       - betterleaks git . --log-opts="$HISTORY_RANGE" --redact=100
         --validation=false --no-banner --ignore-gitleaks-allow
+
+  suppressions:
+    desc:
+      Require a specific rule and a reason for each inline suppression; record
+      them in reports/suppressions.json
+    cmds:
+      - node scripts/suppressions.mts
 
   sbom:
     desc: Inventory the repository with Syft and write SBOMs to reports/
