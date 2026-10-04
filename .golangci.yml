@@ -1,0 +1,63 @@
+version: "2"
+
+run:
+  timeout: 5m
+  tests: true
+  modules-download-mode: readonly
+
+linters:
+  default: standard
+  enable:
+    - bidichk
+    - bodyclose
+    - copyloopvar
+    - durationcheck
+    - errorlint
+    - exhaustive
+    - forcetypeassert
+    - gocritic
+    - gosec
+    - loggercheck
+    - makezero
+    - nilerr
+    - nilnil
+    - noctx
+    - nolintlint
+    - prealloc
+    - predeclared
+    - reassign
+    - revive
+    - rowserrcheck
+    - sqlclosecheck
+    - unconvert
+    - unparam
+    - usetesting
+  settings:
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+      disable-default-exclusions: true
+    govet:
+      enable-all: true
+    staticcheck:
+      checks: [all]
+    gocritic:
+      enabled-tags: [diagnostic, performance, style]
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+  exclusions:
+    generated: strict
+    warn-unused: true
+    presets: []
+
+formatters:
+  # Enable formatters only in the fmt command, so run reports lint issues alone.
+  enable: []
+  exclusions:
+    generated: strict
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  uniq-by-line: false

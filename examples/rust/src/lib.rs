@@ -1,4 +1,7 @@
+//! Count words with the same ASCII whitespace rules as the other examples.
+
 /// Count words separated by ASCII whitespace, including vertical tabs.
+#[must_use]
 pub fn count_words(text: &str) -> usize {
     let mut count = 0;
     let mut in_word = false;

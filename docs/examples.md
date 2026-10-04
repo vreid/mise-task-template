@@ -61,15 +61,16 @@ dependencies must be accompanied by the appropriate restore and update tasks.
 mise reads native version files through `idiomatic_version_file_enable_tools`.
 They live at the root so selection works from the root and every example:
 
-| Tool                                 | Version source                                                 |
-| ------------------------------------ | -------------------------------------------------------------- |
-| Node and pnpm                        | Root `package.json` `devEngines`                               |
-| Task                                 | Root `Taskfile.yml`                                            |
-| .NET SDK                             | Root `global.json`, exact version                              |
-| Go                                   | Root `.go-version`, latest Go 1 release locked by mise         |
-| Python                               | Root `.python-version`, latest Python 3 release locked by mise |
-| Rust                                 | Root `rust-toolchain.toml`, exact version and minimal profile  |
-| LLVM/Clang and shared analysis tools | Root `mise.toml` and `mise.lock`                               |
+| Tool                                 | Version source                                                  |
+| ------------------------------------ | --------------------------------------------------------------- |
+| Node and pnpm                        | Root `package.json` `devEngines`                                |
+| Task                                 | Root `Taskfile.yml`                                             |
+| .NET SDK                             | Root `global.json`, exact version                               |
+| Go                                   | Root `.go-version`, latest Go 1 release locked by mise          |
+| Python                               | Root `.python-version`, latest Python 3 release locked by mise  |
+| Rust                                 | Root `rust-toolchain.toml`, exact version, Clippy, and rustfmt  |
+| golangci-lint                        | Root `.golangci.yml` schema major, exact version in `mise.lock` |
+| LLVM/Clang and shared analysis tools | Root `mise.toml` and `mise.lock`                                |
 
 Go's `go.mod` declares the module's minimum language version. It does not
 override the root tool selection; Task sets `GOTOOLCHAIN=local` so Go does not
@@ -90,15 +91,19 @@ after updating. Major runtime migrations are explicit changes.
 
 ## Analysis coverage
 
-Existing Oxlint and Oxfmt checks cover TypeScript, and Ruff covers Python.
+`task check:lint` aggregates TypeScript, Go, Rust, C#, and Python analysis.
+Oxlint/Oxfmt cover the TypeScript example and repository configuration files;
+Ruff covers Python. Go uses golangci-lint, Rust uses Clippy, and C# uses the
+SDK's strict analyzer set and build-time code-style checks. See
+[language checks](language-checks.md) for rules, formatting, and automatic
+fixes.
+
 Shared shell, Markdown, secret, license, and vulnerability checks still scan the
 repository. `task check` keeps formatting advisory; `task verify` enforces it
-and now includes all builds and tests. The pre-commit hook still runs `check`.
+and includes all builds and tests. The pre-commit hook still runs `check`.
 
-C and C++ builds enable compiler warnings as errors, and C# enables nullable
-checking and warnings as errors. Dedicated lint and formatting policies for
-C/C++, C#, Go, and Rust are the next design decision. Successful builds and
-tests are not presented as complete static analysis for those languages.
+C and C++ builds enable compiler warnings as errors. Their additional lint and
+formatting policies remain a separate design decision.
 
 Native tool references:
 [Node TypeScript support](https://nodejs.org/api/typescript.html),

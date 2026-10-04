@@ -30,7 +30,7 @@ need their own mise lock entries and validation.
 | `task run:rust TEXT="one two three"` | Run one example; prints `3`.                                                  |
 | `task check`                         | Analyze the repository; formatting and license findings are advisory.         |
 | `task verify`                        | Build, analyze, enforce formatting, and test.                                 |
-| `task fix`                           | Apply supported formatting and safe lint fixes.                               |
+| `task fix`                           | Apply supported formatting and lint fixes.                                    |
 | `task maintenance`                   | Update selected tool versions and npm dependencies, restore, fix, and verify. |
 
 Language-specific build, test, and run tasks use the directory names below as

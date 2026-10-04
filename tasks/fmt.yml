@@ -7,6 +7,9 @@ tasks:
       - task: files
       - task: shell
       - task: python
+      - task: go
+      - task: rust
+      - task: csharp
 
   files:
     desc: Format Oxfmt-supported files until formatting is stable
@@ -26,3 +29,19 @@ tasks:
     desc: Format Python files, stubs, notebooks, and docstring code with Ruff
     cmds:
       - ruff format --config .ruff.toml .
+
+  go:
+    desc: Format Go files with gofumpt and goimports through golangci-lint
+    cmds:
+      - bash scripts/format-go.sh write
+
+  rust:
+    desc: Format all Rust targets with rustfmt
+    dir: examples/rust
+    cmds:
+      - cargo fmt --all
+
+  csharp:
+    desc: Format C# whitespace in the application and test project
+    cmds:
+      - bash scripts/format-csharp.sh write

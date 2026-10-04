@@ -1,3 +1,5 @@
+//! Print a word count for exactly one text argument.
+
 use std::process::ExitCode;
 
 fn main() -> ExitCode {

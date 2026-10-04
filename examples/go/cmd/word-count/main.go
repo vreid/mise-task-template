@@ -1,3 +1,4 @@
+// Command word-count prints the number of ASCII-whitespace-delimited words.
 package main
 
 import (
@@ -9,8 +10,12 @@ import (
 
 func main() {
 	if len(os.Args) != 2 {
-		fmt.Fprintln(os.Stderr, "Usage: word-count TEXT")
+		if _, err := fmt.Fprintln(os.Stderr, "Usage: word-count TEXT"); err != nil {
+			os.Exit(1)
+		}
 		os.Exit(2)
 	}
-	fmt.Println(wordcount.Count(os.Args[1]))
+	if _, err := fmt.Println(wordcount.Count(os.Args[1])); err != nil {
+		os.Exit(1)
+	}
 }

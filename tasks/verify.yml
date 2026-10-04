@@ -7,7 +7,6 @@ tasks:
       - task: :build
       - task: :check:lint
       - task: :check:shell
-      - task: :check:python
       - task: :check:docs
       - task: :check:secrets
       - task: :check:licenses
@@ -21,3 +20,6 @@ tasks:
       - pnpm exec oxfmt --check .
       - shfmt -d .
       - ruff format --config .ruff.toml --check .
+      - bash scripts/format-go.sh verify
+      - cargo fmt --manifest-path examples/rust/Cargo.toml --all -- --check
+      - bash scripts/format-csharp.sh verify

@@ -12,6 +12,7 @@ idiomatic_version_file_enable_tools = [
   "pnpm",
   "dotnet",
   "go",
+  "golangci-lint",
   "rust",
   "python",
 ]

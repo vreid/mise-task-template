@@ -2,20 +2,49 @@ version: "3"
 
 tasks:
   default:
-    desc: Apply formatting and safe lint fixes
+    desc: Apply formatting and supported lint fixes
     cmds:
       - task: :fmt
       # Format any lint fixes even when unfixed lint or type errors remain.
       - defer: { task: ":fmt" }
       - task: lint
       - task: shell
-      - task: python
       - task: docs
 
   lint:
+    desc: Apply supported fixes for each configured language
+    cmds:
+      - task: typescript
+      - task: go
+      - task: rust
+      - task: csharp
+      - task: python
+
+  typescript:
     desc: Apply safe Oxlint fixes; fail on remaining lint or type errors
     cmds:
       - pnpm exec oxlint --fix .
+
+  go:
+    desc: Apply golangci-lint fixes and check for remaining issues
+    dir: examples/go
+    cmds:
+      - golangci-lint run --config ../../.golangci.yml --fix ./...
+      - task: :check:go
+
+  rust:
+    desc: Apply machine-applicable Clippy fixes and check for remaining issues
+    dir: examples/rust
+    cmds:
+      - cargo clippy --locked --all-targets --all-features --fix --allow-dirty
+        --allow-staged
+      - task: :check:rust
+
+  csharp:
+    desc: Apply SDK style and analyzer fixes, then recheck both C# projects
+    cmds:
+      - bash scripts/format-csharp.sh fix
+      - task: :check:csharp
 
   shell:
     desc: Apply ShellCheck fixes; fail on remaining shell issues

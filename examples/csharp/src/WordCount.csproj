@@ -2,4 +2,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="WordCount.Tests" />
+  </ItemGroup>
 </Project>

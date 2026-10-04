@@ -17,6 +17,13 @@ indent_size = 4
 indent_style = tab
 indent_size = 8
 
+[*.cs]
+# Enable build-capable IDE rules alongside the SDK's code-quality analyzers.
+dotnet_analyzer_diagnostic.category-Style.severity = warning
+# Whitespace is checked separately; task check must keep it advisory.
+dotnet_diagnostic.IDE0055.severity = none
+csharp_style_namespace_declarations = file_scoped:warning
+
 # shfmt uses these exclusions for both formatting and shell-file discovery.
 [**/{.git,node_modules,dist,build,coverage,target,bin,obj}/**]
 ignore = true

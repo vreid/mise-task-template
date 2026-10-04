@@ -13,7 +13,6 @@ tasks:
       - task: fmt
       - task: lint
       - task: shell
-      - task: python
       - task: docs
       - task: secrets
       - task: licenses
@@ -27,11 +26,42 @@ tasks:
       - bash scripts/check-fmt.sh
       - bash scripts/check-fmt-shell.sh
       - bash scripts/check-fmt-python.sh
+      - bash scripts/format-go.sh check
+      - bash scripts/check-fmt-rust.sh
+      - bash scripts/format-csharp.sh check
 
   lint:
-    desc: Run strict Oxlint rules and TypeScript checks together
+    desc: Run all configured language linters and type checks
+    cmds:
+      - task: typescript
+      - task: go
+      - task: rust
+      - task: csharp
+      - task: python
+
+  typescript:
+    desc: Run strict Oxlint and TypeScript checks across the repository
     cmds:
       - pnpm exec oxlint .
+
+  go:
+    desc: Run strict golangci-lint checks, including Go tests
+    dir: examples/go
+    cmds:
+      - golangci-lint config verify --config ../../.golangci.yml
+      - golangci-lint run --config ../../.golangci.yml ./...
+
+  rust:
+    desc: Run Clippy on all Rust targets and features with warnings as errors
+    dir: examples/rust
+    cmds:
+      - cargo clippy --locked --all-targets --all-features -- -D warnings
+
+  csharp:
+    desc: Run the C# compiler and all configured SDK analyzers on both projects
+    cmds:
+      - dotnet build examples/csharp/tests/WordCount.Tests.csproj --no-restore
+        --no-incremental
 
   shell:
     desc: Check repository shell scripts with ShellCheck

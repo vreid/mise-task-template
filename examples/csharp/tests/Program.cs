@@ -11,7 +11,7 @@ using WordCount;
     ("hello\u00a0world", 1),
 ];
 
-foreach (var (text, expected) in cases)
+foreach ((string text, int expected) in cases)
 {
     int actual = WordCounter.Count(text);
     if (actual != expected)

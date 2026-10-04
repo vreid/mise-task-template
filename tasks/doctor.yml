@@ -12,8 +12,11 @@ tasks:
       - pnpm --version
       - dotnet --version
       - go version
+      - golangci-lint version
       - rustc --version
       - cargo --version
+      - cargo clippy --version
+      - rustfmt --version
       - python --version
       - pnpm exec lefthook version
       - pnpm exec oxfmt --version
