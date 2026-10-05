@@ -16,6 +16,14 @@ tasks:
       - task: linters
       - task: reports
       - task: sast
+      - task: baseline
+
+  baseline:
+    desc:
+      Test that check:new tolerates findings at the merge base and rejects new
+      ones
+    cmds:
+      - node --test scripts/check-new.test.mts
 
   reports:
     desc:

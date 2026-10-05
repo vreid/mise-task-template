@@ -152,6 +152,17 @@ tasks:
         --ignore-gitleaks-allow --report-format json --report-path
         reports/secrets-history.json
 
+  new:
+    desc:
+      Baseline demo; fail only on Opengrep, golangci-lint, and Betterleaks
+      findings added since the merge base with BASE (default origin/main)
+    vars:
+      BASE: '{{.BASE | default "origin/main"}}'
+    env:
+      CHECK_BASE: "{{.BASE}}"
+    cmds:
+      - bash scripts/check-new.sh
+
   findings:
     desc: Classify all reported findings as high, medium, or low
     cmds:
