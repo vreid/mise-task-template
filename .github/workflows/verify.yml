@@ -37,3 +37,50 @@ jobs:
           cache: false
 
       - run: task verify
+
+      # Demonstrates that reports leave the runner, named by the analyzed
+      # commit. A receiving system with longer retention is not chosen yet.
+      - if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: reports-${{ github.sha }}-${{ matrix.os }}
+          path: reports/
+          retention-days: 3
+          if-no-files-found: error
+
+  sloc:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The target branch must be available to compare against.
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca # v5.1.1
+        with:
+          version: "2026.10.0"
+          install_args: --locked task node github:boyter/scc
+          cache: false
+
+      - run: task check:sloc-diff BASE="origin/$BASE_REF"
+        env:
+          BASE_REF: ${{ github.base_ref }}
+
+      # Pull requests from forks get a read-only token and cannot comment.
+      - if: github.event.pull_request.head.repo.full_name == github.repository
+        run:
+          gh pr comment "$PULL_REQUEST" --edit-last --create-if-none --body-file
+          reports/sloc-diff.md
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PULL_REQUEST: ${{ github.event.pull_request.number }}
