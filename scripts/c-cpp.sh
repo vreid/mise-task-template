@@ -47,7 +47,11 @@ test)
     -fsanitize-address-use-after-return=always -fno-sanitize-merge \
     -fno-sanitize-recover=all "${library[@]}" "$project/tests/word_count_test.$extension" \
     -o "$output/word-count-test"
-  # Windows loads the dynamic sanitizer runtime DLL from PATH at startup.
+  # LeakSanitizer runs by default on Linux, is opt-in on macOS, and does not
+  # exist on Windows, which loads the sanitizer runtime DLL from PATH instead.
+  if [ "$(uname -s)" = Darwin ]; then
+    export ASAN_OPTIONS=detect_leaks=1
+  fi
   if command -v cygpath >/dev/null; then
     PATH="$(cygpath -u "$("$compiler" -print-runtime-dir)"):$PATH"
   fi
