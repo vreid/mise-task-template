@@ -1,11 +1,56 @@
 {
   "version": "2.0.0",
+  // Clang, clang-tidy, Lizard, and the findings summary (Opengrep, Betterleaks,
+  // suppression register) print "path:line[:column]: level: message".
+  // golangci-lint ends with the linter name in parentheses; MSBuild uses its
+  // own form. Other linters' output stays in the terminal; their editor extensions
+  // show the same diagnostics live (see docs/vscode.md).
   "tasks": [
     {
       "label": "task check",
       "type": "process",
       "command": "mise",
       "args": ["exec", "--", "task", "check"],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": "test",
+      "problemMatcher": [
+        {
+          "owner": "task-check",
+          "source": "task check",
+          "fileLocation": ["autoDetect", "${workspaceFolder}"],
+          "pattern": {
+            "regexp": "^(.+?):(\\d+)(?::(\\d+))?: (error|warning|info): (.*)$",
+            "file": 1,
+            "line": 2,
+            "column": 3,
+            "severity": 4,
+            "message": 5
+          }
+        },
+        {
+          "owner": "task-check",
+          "source": "golangci-lint",
+          "fileLocation": ["autoDetect", "${workspaceFolder}"],
+          "severity": "error",
+          "pattern": {
+            "regexp": "^([^:\\s][^:]*\\.go):(\\d+):(\\d+): (.*) \\(([\\w-]+)\\)$",
+            "file": 1,
+            "line": 2,
+            "column": 3,
+            "message": 4,
+            "code": 5
+          }
+        },
+        "$msCompile"
+      ]
+    },
+    {
+      "label": "task setup:ide",
+      "type": "process",
+      "command": "mise",
+      "args": ["exec", "--", "task", "setup:ide"],
       "options": {
         "cwd": "${workspaceFolder}"
       },

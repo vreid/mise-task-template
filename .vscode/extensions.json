@@ -1,0 +1,16 @@
+{
+  // Each extension runs the repository's pinned tool with its checked-in
+  // configuration; .vscode/settings.json connects them. See docs/vscode.md.
+  "recommendations": [
+    "charliermarsh.ruff",
+    "oxc.oxc-vscode",
+    "rust-lang.rust-analyzer",
+    "golang.go",
+    "llvm-vs-code-extensions.vscode-clangd",
+    "ms-dotnettools.csharp",
+    "timonwong.shellcheck",
+    "DavidAnson.vscode-markdownlint"
+  ],
+  // Its IntelliSense would duplicate and contradict clangd's diagnostics.
+  "unwantedRecommendations": ["ms-vscode.cpptools"]
+}

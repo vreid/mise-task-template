@@ -23,9 +23,11 @@ Visual Studio C++ Build Tools with the Windows SDK. The selected GitHub runners
 provide these prerequisites. Grant has no Windows release, so Windows reports
 the unavailable license check explicitly; Linux and macOS run it.
 
-In VS Code, open the repository folder and select **Tasks: Run Task**, then
-**task check**. This runs `mise exec -- task check` from the repository root and
-shows results in the task terminal. mise must be available on VS Code's PATH.
+In VS Code, run `mise exec -- task setup:ide`, open the folder with
+`mise exec -- code .`, and install the recommended extensions. They show lint,
+type, and analyzer diagnostics from the pinned tools while you edit. **Tasks:
+Run Task** → **task check** runs the full analysis and lists located findings in
+the Problems panel. See [VS Code](docs/vscode.md).
 
 GitHub Actions runs the [workflow](.github/workflows/verify.yml) on pull
 requests, pushes to `main`, and manual dispatch. Its Linux, native Windows, and

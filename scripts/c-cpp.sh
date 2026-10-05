@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-mode=${1:?Expected build, test, check, verify, or fix}
+mode=${1:?Expected build, test, check, verify, fix, or compdb}
 language=${2:?Expected c or cpp}
 cd "$(dirname "$0")/.."
 
@@ -71,6 +71,15 @@ verify)
   done
   clang-tidy --verify-config
   clang-tidy --quiet "${sources[@]}" -- "${flags[@]}"
+  ;;
+compdb)
+  # clangd does not read SDKROOT from Task's environment, so name the SDK.
+  sysroot=()
+  if [ -n "${SDKROOT:-}" ]; then
+    sysroot=(-isysroot "$SDKROOT")
+  fi
+  node scripts/compile-commands.mts "$compiler" "${flags[@]}" ${sysroot[@]+"${sysroot[@]}"} \
+    -- "${sources[@]}"
   ;;
 fix)
   clang-tidy --verify-config

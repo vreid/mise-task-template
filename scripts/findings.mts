@@ -142,6 +142,23 @@ function checkFindings(
   return findings;
 }
 
+const editorLevel = { high: "error", medium: "warning", low: "info" } as const;
+
+/**
+ * Print open findings that point at a source line in the compiler-style form
+ * that the VS Code problem matcher in .vscode/tasks.json reads. Check
+ * diagnostics are skipped: their native lines were already printed.
+ */
+function printLocated(findings: readonly Finding[]): void {
+  for (const entry of findings) {
+    const located = /^.+:\d+$/u.test(entry.location);
+    if (entry.state === "open" && entry.tool !== "check" && located) {
+      const level = editorLevel[entry.severity];
+      console.log(`${entry.location}: ${level}: ${entry.tool} ${entry.rule}`);
+    }
+  }
+}
+
 async function main(): Promise<void> {
   const inputs = await inputsOf();
   const problems = [...inputs.problems];
@@ -184,6 +201,7 @@ async function main(): Promise<void> {
     join(reports, "findings.json"),
     `${JSON.stringify(report, null, 2)}\n`,
   );
+  printLocated(findings);
   summarize(findings);
 }
 
