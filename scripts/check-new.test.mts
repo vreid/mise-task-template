@@ -12,6 +12,8 @@ import { at, list, text } from "./report-input.mts";
 
 const root = join(import.meta.dirname, "..");
 const directory = await mkdtemp(join(tmpdir(), "check-new-"));
+// A hung tool becomes a failed test with its output instead of a stalled job.
+const timeout = 180000;
 
 const existing = {
   "app/legacy.py":
@@ -22,7 +24,11 @@ const existing = {
 };
 
 function git(...args: readonly string[]): string {
-  return execFileSync("git", args, { cwd: directory, encoding: "utf8" });
+  return execFileSync("git", args, {
+    cwd: directory,
+    encoding: "utf8",
+    timeout,
+  });
 }
 
 async function write(files: Readonly<Record<string, string>>): Promise<void> {
@@ -48,8 +54,10 @@ function checkNew(): {
     cwd: directory,
     encoding: "utf8",
     env: { ...process.env, CHECK_BASE: "main" },
+    timeout,
   });
-  return { status: run.status, output: `${run.stdout}${run.stderr}` };
+  const failure = run.error === undefined ? "" : `\n${run.error.message}`;
+  return { status: run.status, output: `${run.stdout}${run.stderr}${failure}` };
 }
 
 async function report(name: string): Promise<unknown> {
@@ -84,13 +92,13 @@ await test("the merge base has findings that a full scan reports", () => {
   const sast = spawnSync(
     "opengrep",
     ["scan", "--config", "security/rules", "--error", "--quiet", "."],
-    { cwd: directory, encoding: "utf8" },
+    { cwd: directory, encoding: "utf8", timeout },
   );
   assert.equal(sast.status, 1, `${sast.stdout}${sast.stderr}`);
   const go = spawnSync(
     "golangci-lint",
     ["run", "--config", "../../.golangci.yml", "./..."],
-    { cwd: join(directory, "examples/go"), encoding: "utf8" },
+    { cwd: join(directory, "examples/go"), encoding: "utf8", timeout },
   );
   assert.match(go.stdout, /legacy\.go/u);
 });
