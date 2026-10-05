@@ -99,6 +99,14 @@ helpers safe. Environment variables are deliberately treated as untrusted;
 applications with a trusted deployment-only source can record a narrow,
 justified exception.
 
+Opengrep does not resolve TypeScript default imports to their module, and
+several TypeScript sinks are spelled with a conventional identifier. Verified
+misses on 2026-10-05: `import cp from "node:child_process"` with `cp.exec`;
+`createHash("md5")` after a named import, or through a namespace or default
+import not called `crypto`; and an axios default import under another name. A
+default `fs` import is caught only for read calls on an identifier named `fs` or
+`fsp`.
+
 The `unsafe-security.yml` checks require modern hashes and certificate
 verification. A legacy non-security checksum can use a named exception with a
 reason. Supporting a new API or sanitizer requires a corresponding unsafe and
