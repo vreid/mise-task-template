@@ -1,7 +1,15 @@
 package fixtures
-import ("os"; "net/http"; "html/template")
+import ("fmt"; "os"; "net/http"; "html/template")
 func dangerous() {
  input := os.Getenv("INPUT")
+ // ruleid: poc.go.input-to-ssrf
+ http.Post(input, "text/plain", nil)
+ // ruleid: poc.go.input-to-ssrf
+ http.Head(input)
+ // ok: poc.go.input-to-ssrf
+ http.Post("https://example.invalid/status", "text/plain", nil)
+ // ruleid: poc.go.input-to-sql
+ db.Exec(fmt.Sprintf("DELETE FROM t WHERE x = '%s'", input))
  // ruleid: poc.go.input-to-sql
  db.Query("SELECT * FROM users WHERE name = '" + input + "'")
  // ok: poc.go.input-to-sql

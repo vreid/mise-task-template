@@ -41,6 +41,7 @@
                       [
                         { "pattern": "$DB.execute($INPUT, ...)" },
                         { "pattern": "$DB.executemany($INPUT, ...)" },
+                        { "pattern": "$DB.executescript($INPUT, ...)" },
                       ],
                   },
                   { "focus-metavariable": "$INPUT" },
@@ -89,6 +90,7 @@
                       [
                         { "pattern": "open($INPUT, ...)" },
                         { "pattern": "pathlib.Path($INPUT)" },
+                        { "pattern": "pathlib.Path(..., $INPUT, ...)" },
                       ],
                   },
                   { "focus-metavariable": "$INPUT" },
@@ -136,6 +138,15 @@
                     "pattern-either":
                       [
                         { "pattern": "requests.get($INPUT, ...)" },
+                        { "pattern": "requests.post($INPUT, ...)" },
+                        { "pattern": "requests.put($INPUT, ...)" },
+                        { "pattern": "requests.patch($INPUT, ...)" },
+                        { "pattern": "requests.delete($INPUT, ...)" },
+                        { "pattern": "requests.head($INPUT, ...)" },
+                        { "pattern": "requests.options($INPUT, ...)" },
+                        { "pattern": "requests.request($METHOD, $INPUT, ...)" },
+                        { "pattern": "httpx.get($INPUT, ...)" },
+                        { "pattern": "httpx.post($INPUT, ...)" },
                         { "pattern": "urllib.request.urlopen($INPUT, ...)" },
                       ],
                   },
