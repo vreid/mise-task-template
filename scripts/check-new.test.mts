@@ -9,6 +9,7 @@ import { at, list, text } from "./report-input.mts";
 
 // Builds a repository whose main branch already has findings, then checks
 // that task check:new tolerates them and fails on each newly added one.
+// Opengrep reports native separators, so Windows paths are normalized.
 
 const root = join(import.meta.dirname, "..");
 const directory = await mkdtemp(join(tmpdir(), "check-new-"));
@@ -119,7 +120,7 @@ await test("rejects a new Opengrep finding and reports only that one", async () 
   const { status, output } = checkNew();
   assert.equal(status, 1, output);
   const paths = list(at(await report("sast.json"), "results")).map((result) =>
-    text(at(result, "path")),
+    text(at(result, "path")).replaceAll("\\", "/"),
   );
   assert.deepEqual(paths, ["app/added.py"]);
 });
@@ -135,7 +136,7 @@ await test("rejects a new finding in a TypeScript module", async () => {
   const { status, output } = checkNew();
   assert.equal(status, 1, output);
   const paths = list(at(await report("sast-modules.json"), "results")).map(
-    (result) => text(at(result, "path")),
+    (result) => text(at(result, "path")).replaceAll("\\", "/"),
   );
   assert.deepEqual(paths, ["app/added.mts"]);
 });
