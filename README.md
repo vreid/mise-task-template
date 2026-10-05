@@ -59,6 +59,7 @@ and their commit SHA pins, and is included in `maintenance`.
 | `task test`                          | Run tests for all seven examples.                                               |
 | `task run:rust TEXT="one two three"` | Run one example; prints `3`.                                                    |
 | `task check`                         | Analyze the repository and write reports; formatting and licenses are advisory. |
+| `task check:new`                     | Baseline demo: fail only on findings added since the merge base with `BASE`.    |
 | `task verify`                        | Restore locked dependencies, build, analyze, enforce formatting, and test.      |
 | `task fix`                           | Apply supported formatting and lint fixes.                                      |
 | `task maintenance`                   | Update selected tool versions and npm dependencies, restore, fix, and verify.   |

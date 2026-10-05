@@ -41,7 +41,9 @@ The following scope decisions were explicitly agreed:
   scope. Broad file discovery where supported is still useful.
 - Organizational rollout, legacy-project adoption, ownership, mandatory-use
   policies, company coding guidelines, and final company license and
-  false-positive policies are outside this repository's scope.
+  false-positive policies are outside this repository's scope. `task check:new`
+  demonstrates the baseline mechanism for existing projects; each project's
+  baseline policy remains its own decision (see [baseline](baseline.md)).
 - Dependency-Track and SecObserve may supply central reporting and finding
   management. Their selection does not mean uploads or gates are implemented.
 
