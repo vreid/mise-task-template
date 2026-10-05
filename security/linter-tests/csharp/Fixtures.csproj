@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- .NET analyzer fixtures: built by the linter-fixture test, never run. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+</Project>

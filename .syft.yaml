@@ -3,8 +3,9 @@ check-for-app-update: false
 # Include installed packages, lockfiles, binaries, and every supported ecosystem.
 default-catalogers: [all]
 select-catalogers: [-deprecated]
-# Generated reports must not feed back into the next inventory.
-exclude: ["**/.git/**", "./reports/**"]
+# Generated reports must not feed back into the next inventory, and linter
+# fixtures are not part of the product.
+exclude: ["**/.git/**", "./reports/**", "./security/linter-tests/**"]
 
 package:
   search-unindexed-archives: true

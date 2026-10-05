@@ -13,6 +13,7 @@ tasks:
       - task: python
       - task: tooling
       - task: suppressions
+      - task: linters
       - task: sast
 
   typescript:
@@ -63,6 +64,11 @@ tasks:
       Test the suppression register against fixtures in a temporary repository
     cmds:
       - node --test scripts/suppressions.test.mts
+
+  linters:
+    desc: Prove the linter security rules in the coverage matrix still fire
+    cmds:
+      - node --test scripts/linter-fixtures.test.mts
 
   sast:
     desc: Test Opengrep findings and safe alternatives in all seven languages

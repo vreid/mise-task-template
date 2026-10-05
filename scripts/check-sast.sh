@@ -5,7 +5,8 @@ cd "$(dirname "$0")/.."
 flags=(--no-rewrite-rule-ids --disable-version-check --strict --error)
 
 # test:sast checks these deliberately unsafe fixtures separately.
-opengrep scan "${flags[@]}" --config security/rules --exclude security/tests .
+opengrep scan "${flags[@]}" --config security/rules --exclude security/tests \
+  --exclude security/linter-tests .
 
 # Opengrep 1.30 directory discovery skips .mts/.cts. Supply these explicitly to
 # the TypeScript rules, retaining the original paths in findings.

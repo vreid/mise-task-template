@@ -10,6 +10,8 @@ __pycache__/
 *.pyc
 examples/csharp/**/bin/
 examples/csharp/**/obj/
+security/linter-tests/csharp/bin/
+security/linter-tests/csharp/obj/
 
 # Local requirements reference; keep the original document out of Git.
 /requirements.pdf

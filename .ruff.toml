@@ -1,7 +1,8 @@
 line-length = 80
 indent-width = 4
 extend-include = ["*.pyw"]
-extend-exclude = ["build", "coverage"]
+# Deliberately weak code; scripts/linter-fixtures.test.mts lints it explicitly.
+extend-exclude = ["build", "coverage", "security/linter-tests"]
 
 [lint]
 # Enable all stable rules. mise.lock makes rule changes reviewable on updates.
