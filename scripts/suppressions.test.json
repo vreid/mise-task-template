@@ -8,7 +8,8 @@
     "tool.ts": "export function run(code: string): unknown {\n  // oxlint-disable-next-line no-eval -- trusted build-time input\n  return eval(code);\n}\n\nexport function bare(code: string): unknown {\n  // eslint-disable-next-line\n  return eval(code);\n}\n\n// @ts-expect-error -- legacy global without types\nexport const legacy: number = globalThis.legacyValue;\n\n// @ts-ignore\nexport const ignored: number = globalThis.ignoredValue;\n\n// #lizard forgives(CCN) -- table-driven dispatch\nexport function table(): void {}\n",
     "run.sh": "#!/usr/bin/env bash\nwords=\"a b\"\n# shellcheck disable=SC2086 # word splitting is intended\necho $words\n# shellcheck disable=all\necho $words\n",
     "README.md": "# Fixture\n\n<!-- markdownlint-disable-next-line MD013 -- generated table row -->\nlong line\n\n<!-- markdownlint-disable -->\n",
-    ".betterleaksignore": "# Rotated test token; see the incident record.\nconfig.ts:github-pat:1\nconfig.ts:github-pat:2\n"
+    ".betterleaksignore": "# Rotated test token; see the incident record.\nconfig.ts:github-pat:1\nconfig.ts:github-pat:2\n",
+    "gosec.go": "package audit\n// #nosec G401 -- compatibility with a public checksum format\n// #nosec G401\n// #nosec\n// gosec:disable G501 -- compatibility with a public checksum format\n// gosec:disable\n"
   },
   "uncommitted": {
     "late.go": "package main\n\nvar _ = 1 //nolint:gochecknoglobals // demonstrates uncommitted attribution\n"
@@ -237,6 +238,41 @@
       "tool": "golangci-lint",
       "rules": ["gochecknoglobals"],
       "valid": true
+    },
+    {
+      "file": "gosec.go",
+      "line": 2,
+      "tool": "gosec",
+      "rules": ["G401"],
+      "valid": true
+    },
+    {
+      "file": "gosec.go",
+      "line": 3,
+      "tool": "gosec",
+      "rules": ["G401"],
+      "valid": false
+    },
+    {
+      "file": "gosec.go",
+      "line": 4,
+      "tool": "gosec",
+      "rules": [],
+      "valid": false
+    },
+    {
+      "file": "gosec.go",
+      "line": 5,
+      "tool": "gosec",
+      "rules": ["G501"],
+      "valid": true
+    },
+    {
+      "file": "gosec.go",
+      "line": 6,
+      "tool": "gosec",
+      "rules": [],
+      "valid": false
     }
   ]
 }

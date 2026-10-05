@@ -1,0 +1,41 @@
+{
+  "rules":
+    [
+      {
+        "id": "poc.c.weak-hash",
+        "languages": ["c"],
+        "severity": "HIGH",
+        "message":
+          "Use a modern cryptographic hash; record a narrow exception for
+          non-security compatibility.",
+        "metadata":
+          {
+            "category": "security",
+            "confidence": "HIGH",
+            "cwe": ["CWE-327"],
+            "owasp": ["A04:2025"],
+          },
+        "pattern-either":
+          [{ "pattern": "MD5(...)" }, { "pattern": "SHA1(...)" }],
+      },
+      {
+        "id": "poc.c.disabled-tls",
+        "languages": ["c"],
+        "severity": "HIGH",
+        "message": "Keep peer certificate verification enabled.",
+        "metadata":
+          {
+            "category": "security",
+            "confidence": "HIGH",
+            "cwe": ["CWE-295"],
+            "owasp": ["A02:2025"],
+          },
+        "pattern-either":
+          [
+            {
+              "pattern": "curl_easy_setopt($HANDLE, CURLOPT_SSL_VERIFYPEER, 0)",
+            },
+          ],
+      },
+    ],
+}

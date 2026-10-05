@@ -1,13 +1,15 @@
 # Source security proof of concept
 
-Opengrep checks one weakness across TypeScript, C#, C, C++, Go, Rust, and
-Python: **OS command injection**, mapped to
-[OWASP Top 10:2025 A05 Injection](https://top10.owasp.org/2025/A05_2025-Injection/)
-and **CWE-78**, ranked ninth in the
-[2025 CWE Top 25](https://cwe.mitre.org/top25/archive/2025/2025_cwe_top25.html).
-This demonstrates a tested security rule for every example language; it does not
-establish coverage of the entire OWASP Top 10 or CWE Top 25. The
-[coverage matrix](owasp-cwe-coverage.md) shows what each category relies on.
+Opengrep runs 41 checked-in security rules across TypeScript, C#, C, C++, Go,
+Rust, and Python. Command injection, SQL injection, path traversal, and SSRF
+have positive and negative fixtures in all seven languages. Unescaped HTML has
+fixtures in TypeScript, Python, Go, C#, and Rust. Additional rules cover weak
+hashes and disabled TLS verification in TypeScript, Rust, C, and C++.
+
+The [coverage matrix](owasp-cwe-coverage.md) distinguishes proven API patterns,
+language guarantees, analyzer rules, runtime checks, and application-specific
+review. This is broader coverage of the OWASP Top 10 and CWE Top 25, not a
+promise to recognize every vulnerability or framework.
 
 ## Tasks
 
@@ -18,9 +20,8 @@ establish coverage of the entire OWASP Top 10 or CWE Top 25. The
 
 Both `task check` and `task verify` include `check:sast`, so the pre-commit
 hook, VS Code task, and maintenance use it too. `task test` includes the rule
-tests. Within one Task invocation they run only once. Opengrep findings and
-analysis errors fail the check; formatting remains governed by the existing
-formatting tasks.
+tests. Opengrep findings and analysis errors fail the check; formatting remains
+governed by the existing formatting tasks.
 
 mise installs Opengrep through its registry entry, with the exact release and
 checksum in `mise.lock`. It has no idiomatic version file here. Normal setup
@@ -38,12 +39,12 @@ original paths in findings. Keep future TypeScript rules in that directory too.
 
 ## What the rules model
 
-Each rule uses taint analysis: environment variables and command-line arguments
-are treated as untrusted, followed through local assignments and expressions,
-and reported when used as shell command text. A shell is any of `sh`, `bash`,
-`dash`, `zsh`, `ksh`, `cmd`, or PowerShell, with or without a `/bin/` or
-`/usr/bin/` path. `DEMO_INPUT` is the example environment variable; the rules
-match any name.
+The command-injection rules use taint analysis: environment variables and
+command-line arguments are treated as untrusted, followed through local
+assignments and expressions, and reported when used as shell command text. A
+shell is any of `sh`, `bash`, `dash`, `zsh`, `ksh`, `cmd`, or PowerShell, with
+or without a `/bin/` or `/usr/bin/` path. `DEMO_INPUT` is the example
+environment variable; the rules match any name.
 
 | Language   | Sources                                                            | Shell sinks                                                                              |
 | ---------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
@@ -66,11 +67,39 @@ format string, keeping input in a data argument. This does not make arbitrary
 executables, options, or format strings safe.
 
 The fixtures include the 14 variants an adversarial review used to bypass the
-earlier, environment-only rules; all are now caught. HTTP input, files, stdin,
-custom wrappers, cross-file flows, and sanitizers are still not modeled.
-Existing application code and any future projects need rules for their actual
-trust boundaries and APIs. Absence of a finding is not evidence that arbitrary
-code is safe.
+earlier, environment-only rules; all are now caught. The command-injection rules
+do not yet model HTTP input, files, stdin, custom wrappers, cross-file flows, or
+application-specific sanitizers. Existing application code and any future
+projects need rules for their actual trust boundaries and APIs. Absence of a
+finding is not evidence that arbitrary code is safe.
+
+## Additional data-flow checks
+
+The `data-injection.yml` rules follow environment/argument input into SQL APIs,
+file opening, outgoing requests, and raw HTML APIs. They also recognize common
+request query/form/body sources in TypeScript, Python, Go, and C#. The exact
+patterns in each rule are the supported boundary; no cross-file analysis or
+arbitrary wrapper inference is claimed.
+
+| Language   | Tested APIs                                                   |
+| ---------- | ------------------------------------------------------------- |
+| TypeScript | `query`, Node `fs`, `fetch`, DOM `innerHTML`                  |
+| Python     | DB-API `execute`, `open`, Requests, MarkupSafe                |
+| Go         | `database/sql`, `os.ReadFile`, `http.Get`, `template.HTML`    |
+| C#         | `CommandText`, `File.ReadAllText`, `HttpClient`, `HtmlString` |
+| Rust       | SQLx, `std::fs`, Reqwest, Maud `PreEscaped`                   |
+| C/C++      | SQLite, `fopen`, libcurl                                      |
+
+Fixtures prove that bound SQL parameters, fixed file paths and destinations, and
+escaped/text output stay unflagged. They do not prove arbitrary validation
+helpers safe. Environment variables are deliberately treated as untrusted;
+applications with a trusted deployment-only source can record a narrow,
+justified exception.
+
+The `unsafe-security.yml` checks require modern hashes and certificate
+verification. A legacy non-security checksum can use a named exception with a
+reason. Supporting a new API or sanitizer requires a corresponding unsafe and
+safe regression fixture.
 
 ## Fixtures and rule maintenance
 
@@ -87,8 +116,12 @@ unexpected ones. Only the normal repository scan excludes this fixture
 directory. There are no blanket exclusions for application tests. Ruff has
 narrow exceptions for the Python fixture's deliberate subprocess examples and
 native test annotations; its other checks and formatting remain enabled. The
-TypeScript fixtures also remain in the existing lint/type-check scope. C, C++,
-C#, Go, and Rust fixtures live outside the application projects.
+original command-injection TypeScript fixtures remain in lint/type-check scope.
+The additional data-injection and unsafe-security fixtures use framework API
+fragments and are excluded from TypeScript lint/type checking; the matching
+Python data-injection fixture is excluded from Ruff. Opengrep regression tests
+still verify every rule against those deliberately unsafe fragments. C, C++, C#,
+Go, and Rust fixtures live outside the application projects.
 
 To inspect the intentional findings directly, run:
 

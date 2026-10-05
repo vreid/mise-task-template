@@ -73,8 +73,9 @@ remain the responsibility of the existing compilers and linters. See
 ## Repository report
 
 `check:scc` also writes the counts to `reports/sloc.json`. `check:sloc-diff`
-compares code lines per language with a target branch, and CI posts that
-comparison on every pull request; see [analysis reports](reports.md).
+compares code lines per language with a target branch using the current working
+tree's root and nested ignore policy on both snapshots. CI posts that comparison
+on every pull request; see [analysis reports](reports.md).
 
 scc reports per-language and per-file code size and estimated complexity,
 including languages and configuration formats beyond Lizard's coverage. Files

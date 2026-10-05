@@ -1,0 +1,40 @@
+{
+  "rules":
+    [
+      {
+        "id": "poc.typescript.weak-hash",
+        "languages": ["typescript"],
+        "severity": "HIGH",
+        "message":
+          "Use a modern cryptographic hash; record a narrow exception for
+          non-security compatibility.",
+        "metadata":
+          {
+            "category": "security",
+            "confidence": "HIGH",
+            "cwe": ["CWE-327"],
+            "owasp": ["A04:2025"],
+          },
+        "pattern-either":
+          [
+            { "pattern": 'crypto.createHash("md5")' },
+            { "pattern": 'crypto.createHash("sha1")' },
+          ],
+      },
+      {
+        "id": "poc.typescript.disabled-tls",
+        "languages": ["typescript"],
+        "severity": "HIGH",
+        "message": "Keep peer certificate verification enabled.",
+        "metadata":
+          {
+            "category": "security",
+            "confidence": "HIGH",
+            "cwe": ["CWE-295"],
+            "owasp": ["A02:2025"],
+          },
+        "pattern-either":
+          [{ "pattern": "({..., rejectUnauthorized: false, ...})" }],
+      },
+    ],
+}

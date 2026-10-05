@@ -1,0 +1,40 @@
+{
+  "rules":
+    [
+      {
+        "id": "poc.rust.weak-hash",
+        "languages": ["rust"],
+        "severity": "HIGH",
+        "message":
+          "Use a modern cryptographic hash; record a narrow exception for
+          non-security compatibility.",
+        "metadata":
+          {
+            "category": "security",
+            "confidence": "HIGH",
+            "cwe": ["CWE-327"],
+            "owasp": ["A04:2025"],
+          },
+        "pattern-either":
+          [
+            { "pattern": "md5::compute(...)" },
+            { "pattern": "sha1::Sha1::new()" },
+          ],
+      },
+      {
+        "id": "poc.rust.disabled-tls",
+        "languages": ["rust"],
+        "severity": "HIGH",
+        "message": "Keep peer certificate verification enabled.",
+        "metadata":
+          {
+            "category": "security",
+            "confidence": "HIGH",
+            "cwe": ["CWE-295"],
+            "owasp": ["A02:2025"],
+          },
+        "pattern-either":
+          [{ "pattern": "$BUILDER.danger_accept_invalid_certs(true)" }],
+      },
+    ],
+}

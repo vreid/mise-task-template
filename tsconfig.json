@@ -34,5 +34,12 @@
     "**/*.cjs",
     "**/*.jsx"
   ],
-  "exclude": ["**/node_modules", "**/dist", "**/build", "**/coverage"]
+  "exclude": [
+    "**/node_modules",
+    "**/dist",
+    "**/build",
+    "**/coverage",
+    "security/tests/**/data-injection.*",
+    "security/tests/**/unsafe-security.*"
+  ]
 }

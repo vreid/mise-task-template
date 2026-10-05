@@ -14,6 +14,7 @@ rule or a reason.
 | Ruff          | `# noqa: <code> -- <reason>`                                                        |
 | oxlint        | `oxlint-disable-next-line <rule> -- <reason>`, also `-line` and `eslint-` prefixes  |
 | TypeScript    | `@ts-expect-error -- <reason>`; `@ts-ignore` and `@ts-nocheck` are rejected         |
+| gosec         | `#nosec G401 -- <reason>` or `gosec:disable G401 -- <reason>`                       |
 | golangci-lint | `//nolint:<linter> // <reason>`                                                     |
 | Rust          | `#[expect(<lint>, reason = "<reason>")]`, or `#[allow(...)]` with `reason`          |
 | C#            | `#pragma warning disable <id> // <reason>`, or `SuppressMessage` with Justification |
@@ -37,15 +38,19 @@ count as the reason. This suits explanations that need more than one line:
 #pragma clang unsafe_buffer_usage begin
 ```
 
-golangci-lint, Rust attributes, and C# `SuppressMessage` accept only their own
-reason fields, because their native checks look there: `nolintlint`, Clippy's
-`allow_attributes_without_reason`, and the attribute's `Justification`.
+gosec, golangci-lint, Rust attributes, and C# `SuppressMessage` accept only
+their own reason fields, because their native checks look there: `nolintlint`,
+Clippy's `allow_attributes_without_reason`, and the attribute's `Justification`.
 
 Blanket forms are rejected: directives without rules, golangci-lint's `all`,
 wildcards in clang-tidy checks, Clippy and compiler lint groups such as
 `clippy::all` and `warnings`, and `-Weverything`, `-Wall`, or `-Wextra`. In
 `#`-comment languages such as Python, Lizard forgives a whole function even when
 a metric is named.
+
+Native gosec exceptions require both specific `G` rule IDs and a `--` reason.
+The register records them, and gosec independently rejects missing rule IDs or
+justifications through its configured global policy.
 
 ## Detection
 

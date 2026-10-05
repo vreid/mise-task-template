@@ -16,3 +16,6 @@ security/linter-tests/csharp/obj/
 # Local requirements reference; keep the original document out of Git.
 /requirements.pdf
 /Requirements for Static Code Ana_eaaf61388e01464e99679ef91fe0164e-041026-1936-154.pdf
+
+# Serializes complete analysis runs.
+/.analysis-lock/

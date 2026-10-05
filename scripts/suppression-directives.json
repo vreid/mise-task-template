@@ -42,6 +42,14 @@
       "expected": "# noqa: <code> -- <reason>"
     },
     {
+      "tool": "gosec",
+      "files": "\\.go$",
+      "marker": "(?:#nosec|gosec:disable)\\b",
+      "form": "(?:#nosec|gosec:disable)\\s+(?<rules>G\\d+(?:[\\s,]+G\\d+)*)(?:\\s+--\\s+(?<reason>.*\\S))?",
+      "nativeReason": true,
+      "expected": "#nosec G<rule> -- <reason>, or gosec:disable G<rule> -- <reason>"
+    },
+    {
       "tool": "golangci-lint",
       "note": "nolintlint already requires this form; the register records it.",
       "files": "\\.go$",

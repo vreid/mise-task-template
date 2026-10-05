@@ -6,9 +6,10 @@ flags=(--no-rewrite-rule-ids --disable-version-check --strict --error)
 
 # test:sast checks these deliberately unsafe fixtures separately.
 mkdir -p reports
+status=0
 opengrep scan "${flags[@]}" --json-output=reports/sast.json \
   --config security/rules --exclude security/tests \
-  --exclude security/linter-tests .
+  --exclude security/linter-tests . || status=$?
 
 # Opengrep 1.30 directory discovery skips .mts/.cts. Supply these explicitly to
 # the TypeScript rules, retaining the original paths in findings.
@@ -27,5 +28,9 @@ done <"$file_list"
 if [ "${#modules[@]}" -gt 0 ]; then
   opengrep scan "${flags[@]}" --json-output=reports/sast-modules.json \
     --config security/rules/typescript \
-    --scan-unknown-extensions "${modules[@]}"
+    --scan-unknown-extensions "${modules[@]}" || status=$?
+else
+  printf '%s\n' '{"results": [], "errors": []}' >reports/sast-modules.json
 fi
+
+exit "$status"

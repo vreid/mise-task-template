@@ -1,0 +1,181 @@
+{
+  "rules":
+    [
+      {
+        "id": "poc.go.input-to-sql",
+        "languages": ["go"],
+        "mode": "taint",
+        "severity": "HIGH",
+        "message":
+          "Untrusted input reaches SQL injection sensitive API (CWE-89). Use a
+          constant statement and bound parameters.",
+        "metadata":
+          {
+            "category": "security",
+            "confidence": "HIGH",
+            "cwe": ["CWE-89: SQL injection"],
+            "owasp": ["A05:2025"],
+          },
+        "pattern-sources":
+          [
+            {
+              "pattern-either":
+                [
+                  { "pattern": "os.Getenv(...)" },
+                  { "pattern": "os.Args" },
+                  { "pattern": "$REQUEST.URL.Query().Get(...)" },
+                  { "pattern": "$REQUEST.FormValue(...)" },
+                ],
+            },
+          ],
+        "pattern-sinks":
+          [
+            {
+              "patterns":
+                [
+                  {
+                    "pattern-either":
+                      [
+                        { "pattern": "$DB.Query($INPUT, ...)" },
+                        { "pattern": "$DB.Exec($INPUT, ...)" },
+                        { "pattern": "$DB.QueryContext($CTX, $INPUT, ...)" },
+                      ],
+                  },
+                  { "focus-metavariable": "$INPUT" },
+                ],
+            },
+          ],
+      },
+      {
+        "id": "poc.go.input-to-path",
+        "languages": ["go"],
+        "mode": "taint",
+        "severity": "HIGH",
+        "message":
+          "Untrusted input reaches Path traversal sensitive API (CWE-22).
+          Resolve a trusted identifier through an allowlist; do not open an
+          arbitrary input path.",
+        "metadata":
+          {
+            "category": "security",
+            "confidence": "HIGH",
+            "cwe": ["CWE-22: Path traversal"],
+            "owasp": ["A01:2025"],
+          },
+        "pattern-sources":
+          [
+            {
+              "pattern-either":
+                [
+                  { "pattern": "os.Getenv(...)" },
+                  { "pattern": "os.Args" },
+                  { "pattern": "$REQUEST.URL.Query().Get(...)" },
+                  { "pattern": "$REQUEST.FormValue(...)" },
+                ],
+            },
+          ],
+        "pattern-sinks":
+          [
+            {
+              "patterns":
+                [
+                  {
+                    "pattern-either":
+                      [
+                        { "pattern": "os.Open($INPUT)" },
+                        { "pattern": "os.ReadFile($INPUT)" },
+                      ],
+                  },
+                  { "focus-metavariable": "$INPUT" },
+                ],
+            },
+          ],
+      },
+      {
+        "id": "poc.go.input-to-ssrf",
+        "languages": ["go"],
+        "mode": "taint",
+        "severity": "HIGH",
+        "message":
+          "Untrusted input reaches Server-side request forgery sensitive API
+          (CWE-918). Allowlist destination schemes, hosts, and ports before
+          issuing a request.",
+        "metadata":
+          {
+            "category": "security",
+            "confidence": "HIGH",
+            "cwe": ["CWE-918: Server-side request forgery"],
+            "owasp": ["A01:2025"],
+          },
+        "pattern-sources":
+          [
+            {
+              "pattern-either":
+                [
+                  { "pattern": "os.Getenv(...)" },
+                  { "pattern": "os.Args" },
+                  { "pattern": "$REQUEST.URL.Query().Get(...)" },
+                  { "pattern": "$REQUEST.FormValue(...)" },
+                ],
+            },
+          ],
+        "pattern-sinks":
+          [
+            {
+              "patterns":
+                [
+                  {
+                    "pattern-either":
+                      [
+                        { "pattern": "http.Get($INPUT)" },
+                        { "pattern": "http.NewRequest($METHOD, $INPUT, ...)" },
+                      ],
+                  },
+                  { "focus-metavariable": "$INPUT" },
+                ],
+            },
+          ],
+      },
+      {
+        "id": "poc.go.input-to-html",
+        "languages": ["go"],
+        "mode": "taint",
+        "severity": "HIGH",
+        "message":
+          "Untrusted input reaches Cross-site scripting sensitive API (CWE-79).
+          Use the framework HTML escaping facility or textContent instead of raw
+          HTML.",
+        "metadata":
+          {
+            "category": "security",
+            "confidence": "HIGH",
+            "cwe": ["CWE-79: Cross-site scripting"],
+            "owasp": ["A05:2025"],
+          },
+        "pattern-sources":
+          [
+            {
+              "pattern-either":
+                [
+                  { "pattern": "os.Getenv(...)" },
+                  { "pattern": "os.Args" },
+                  { "pattern": "$REQUEST.URL.Query().Get(...)" },
+                  { "pattern": "$REQUEST.FormValue(...)" },
+                ],
+            },
+          ],
+        "pattern-sinks":
+          [
+            {
+              "patterns":
+                [
+                  {
+                    "pattern-either": [{ "pattern": "template.HTML($INPUT)" }],
+                  },
+                  { "focus-metavariable": "$INPUT" },
+                ],
+            },
+          ],
+      },
+    ],
+}

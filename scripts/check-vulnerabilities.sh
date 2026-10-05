@@ -8,3 +8,4 @@ cd "$(dirname "$0")/.."
 # conversion inside tool-specific arguments such as sbom:/path on Windows.
 grype --config .grype.yaml -o table -o template \
   -o json=reports/vulnerabilities.json <reports/sbom.syft.json
+node scripts/validate-grype.mts

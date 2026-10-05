@@ -98,3 +98,39 @@ await test(".NET analyzers fire on the C# fixture", async () => {
     findings(output, /Deserialization\.cs\((\d+),\d+\): \w+ ([A-Z]+\d+):/u),
   );
 });
+
+await test("gosec rejects reasonless native exceptions and accepts justified ones", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "gosec-exceptions-"));
+  const config = join(root, ".golangci.yml");
+  const code =
+    '// Package fixture exercises native gosec exceptions.\npackage fixture\nimport "crypto/md5" // #nosec G501 REASON\n// Digest calculates a legacy checksum.\nfunc Digest(input []byte) [16]byte { return md5.Sum(input) /* #nosec G401 REASON */ }\n';
+  try {
+    await writeFile(
+      join(directory, "go.mod"),
+      "module fixture.invalid\n\ngo 1.26\n",
+    );
+    await writeFile(
+      join(directory, "fixture.go"),
+      code.replaceAll("REASON", ""),
+    );
+    const unsafe = run(
+      "golangci-lint",
+      ["run", "--config", config, "./..."],
+      directory,
+    );
+    assert.match(unsafe, /G401|G501/u);
+    await writeFile(
+      join(directory, "fixture.go"),
+      code.replaceAll("REASON", "-- legacy public checksum compatibility"),
+    );
+    const safe = run(
+      "golangci-lint",
+      ["run", "--config", config, "./..."],
+      directory,
+    );
+    assert.doesNotMatch(safe, /G401|G501/u);
+    assert.match(safe, /0 issues/u);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});

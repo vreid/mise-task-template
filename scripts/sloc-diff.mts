@@ -1,8 +1,15 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import {
+  copyFile,
+  lstat,
+  mkdir,
+  mkdtemp,
+  rm,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 // Compares scc code lines per language between a target branch and the
@@ -39,6 +46,41 @@ function count(directory: string): Record<string, number> {
 
 function signed(change: number): string {
   return change > 0 ? `+${change}` : String(change);
+}
+
+function policyFiles(directory: string): string[] {
+  return run(
+    "git",
+    ["ls-files", "--cached", "--others", "--exclude-standard", "-z"],
+    directory,
+  )
+    .split("\0")
+    .filter((file) =>
+      [".gitignore", ".ignore", ".sccignore"].includes(basename(file)),
+    );
+}
+
+/** Overlay the current counting policy, including nested ignores, on the baseline. */
+async function applyPolicy(worktree: string): Promise<void> {
+  await Promise.all(
+    policyFiles(worktree).map((file) =>
+      rm(join(worktree, file), { force: true }),
+    ),
+  );
+  await Promise.all(
+    policyFiles(root).map(async (file) => {
+      const source = join(root, file);
+      const info = await lstat(source).catch(() => null);
+      if (info === null) return;
+      assert.ok(
+        info.isFile(),
+        `Counting policy must be a regular file: ${file}`,
+      );
+      const destination = join(worktree, file);
+      await mkdir(dirname(destination), { recursive: true });
+      await copyFile(source, destination);
+    }),
+  );
 }
 
 /** Renders changed languages and the total as a Markdown table. */
@@ -86,12 +128,14 @@ async function main(): Promise<void> {
     throw error;
   }
   try {
+    await applyPolicy(worktree);
     const before = count(worktree);
     const after = count(root);
     const commit = run("git", ["rev-parse", "--short", base], root).trim();
     const markdown = [
       "<!-- sloc-diff -->",
       `Code lines counted by scc, compared with \`${base}\` at \`${commit}\`:`,
+      "Both snapshots use the current working tree's counting policy. Difference is net SLOC, not added/deleted lines.",
       "",
       table(before, after),
       "",

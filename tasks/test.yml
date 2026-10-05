@@ -14,7 +14,15 @@ tasks:
       - task: tooling
       - task: suppressions
       - task: linters
+      - task: reports
       - task: sast
+
+  reports:
+    desc:
+      Test report provenance, failed diagnostics, acceptances, and SLOC
+      comparisons
+    cmds:
+      - node --test scripts/reports.test.mts scripts/sloc-diff.test.mts
 
   typescript:
     desc: Run the TypeScript tests with Node's test runner

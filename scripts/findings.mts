@@ -1,6 +1,8 @@
-import { readFile, writeFile } from "node:fs/promises";
+import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { reports } from "./report-run.mts";
+import { at, text, list, inputsOf } from "./report-input.mts";
+import { acceptanceReason } from "./grype-acceptances.mts";
 
 // Collects the findings in reports/ into reports/findings.json, each classified
 // high, medium, or low. Tools with their own severity keep it; everything else
@@ -16,27 +18,8 @@ interface Finding {
   readonly native: string | null;
   readonly state: "open" | "accepted";
   readonly reason: string | null;
+  readonly details?: string;
 }
-
-const reports = fileURLToPath(new URL("../reports/", import.meta.url));
-
-/** Follows a path of keys and indexes through parsed JSON. */
-function at(value: unknown, ...path: readonly (string | number)[]): unknown {
-  let current = value;
-  for (const key of path) {
-    if (typeof current !== "object" || current === null) {
-      return undefined;
-    }
-    const next: unknown = Reflect.get(current, key);
-    current = next;
-  }
-  return current;
-}
-
-const text = (value: unknown): string =>
-  typeof value === "string" || typeof value === "number" ? String(value) : "";
-const list = (value: unknown): readonly unknown[] =>
-  Array.isArray(value) ? value : [];
 
 function classify(native: string): Severity {
   const level = native.toLowerCase();
@@ -44,14 +27,6 @@ function classify(native: string): Severity {
     return "high";
   }
   return ["medium", "warning", "moderate"].includes(level) ? "medium" : "low";
-}
-
-async function load(name: string): Promise<unknown> {
-  try {
-    return JSON.parse(await readFile(join(reports, name), "utf8"));
-  } catch {
-    return undefined;
-  }
 }
 
 function finding(tool: string, rule: string, location: string, native = "") {
@@ -93,8 +68,7 @@ function grype(report: unknown): Finding[] {
     grypeMatch(match, null),
   );
   const accepted = list(at(report, "ignoredMatches")).map((match) => {
-    const reason = text(at(match, "appliedIgnoreRules", 0, "reason"));
-    return grypeMatch(match, reason === "" ? "fix not published" : reason);
+    return grypeMatch(match, acceptanceReason(match));
   });
   return [...open, ...accepted];
 }
@@ -129,23 +103,7 @@ function register(report: unknown): Finding[] {
     });
 }
 
-async function main(): Promise<void> {
-  const findings = [
-    ...opengrep(await load("sast.json")),
-    ...opengrep(await load("sast-modules.json")),
-    ...grype(await load("vulnerabilities.json")),
-    ...betterleaks(await load("secrets.json")),
-    ...betterleaks(await load("secrets-history.json")),
-    ...grant(await load("licenses.json")),
-    ...register(await load("suppressions.json")),
-  ];
-  const manifest = await load("manifest.json");
-  const commit = text(at(manifest, "commit"));
-  const report = { commit: commit === "" ? null : commit, findings };
-  await writeFile(
-    join(reports, "findings.json"),
-    `${JSON.stringify(report, null, 2)}\n`,
-  );
+function summarize(findings: readonly Finding[]): void {
   const count = (severity: Severity, state: Finding["state"]) =>
     findings.filter(
       (entry) => entry.severity === severity && entry.state === state,
@@ -158,6 +116,75 @@ async function main(): Promise<void> {
   console.log(
     `Findings (open+accepted): ${summary}; details in reports/findings.json.`,
   );
+}
+
+/** Preserve individual located diagnostics and a complete log for other failures. */
+function checkFindings(
+  manifest: unknown,
+  diagnostics: readonly (readonly [string, string])[],
+): Finding[] {
+  const findings: Finding[] = [];
+  for (const [task, output] of diagnostics) {
+    const log = `logs/${task.replaceAll(":", "-")}.log`;
+    const rows = [...new Set(output.split("\n"))];
+    const located = rows.filter((row) =>
+      /^.+?(?::\d+(?::\d+)?|\(\d+,\d+\)):?\s+\S/u.test(row),
+    );
+    for (const row of located)
+      findings.push({ ...finding("check", task, log), details: row });
+    const check = list(at(manifest, "checks")).find(
+      (entry) => at(entry, "task") === task,
+    );
+    if (located.length === 0 && at(check, "status") === "failed") {
+      findings.push({ ...finding("check", task, log), details: output });
+    }
+  }
+  return findings;
+}
+
+async function main(): Promise<void> {
+  const inputs = await inputsOf();
+  const problems = [...inputs.problems];
+  const load = (name: string) => inputs.data.get(name);
+  const findings: Finding[] = [
+    ...opengrep(load("sast.json")),
+    ...opengrep(load("sast-modules.json")),
+    ...grype(load("vulnerabilities.json")),
+    ...betterleaks(load("secrets.json")),
+    ...betterleaks(load("secrets-history.json")),
+    ...grant(load("licenses.json")),
+    ...register(load("suppressions.json")),
+    ...checkFindings(inputs.manifest, Array.from(inputs.diagnostics)),
+  ];
+  const ignored = list(at(load("vulnerabilities.json"), "ignoredMatches"));
+  for (const match of ignored) {
+    if (acceptanceReason(match) === null)
+      problems.push(
+        `Grype acceptance lacks a reason: ${text(at(match, "vulnerability", "id"))}`,
+      );
+  }
+  for (const problem of problems) {
+    findings.push({
+      ...finding("reporting", "incomplete-evidence", "manifest.json", "high"),
+      details: problem,
+    });
+  }
+  const complete = problems.length === 0;
+  const report = {
+    run: at(inputs.manifest, "run"),
+    commit: at(inputs.manifest, "commit"),
+    complete,
+    status: complete ? at(inputs.manifest, "status") : "incomplete",
+    checks: at(inputs.manifest, "checks"),
+    findings,
+  };
+  process.exitCode =
+    complete && at(inputs.manifest, "status") === "passed" ? 0 : 1;
+  await writeFile(
+    join(reports, "findings.json"),
+    `${JSON.stringify(report, null, 2)}\n`,
+  );
+  summarize(findings);
 }
 
 await main();

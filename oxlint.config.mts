@@ -2,7 +2,11 @@ import type { OxlintConfig } from "oxlint";
 
 export default {
   // Deliberately weak code; scripts/linter-fixtures.test.mts lints it explicitly.
-  ignorePatterns: ["security/linter-tests/**"],
+  ignorePatterns: [
+    "security/linter-tests/**",
+    "security/tests/**/data-injection.*",
+    "security/tests/**/unsafe-security.*",
+  ],
   plugins: ["typescript", "unicorn", "oxc", "import", "node", "promise"],
   env: { node: true },
   categories: {

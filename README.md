@@ -30,13 +30,16 @@ shows results in the task terminal. mise must be available on VS Code's PATH.
 GitHub Actions runs the [workflow](.github/workflows/verify.yml) on pull
 requests, pushes to `main`, and manual dispatch. Its Linux, native Windows, and
 macOS jobs check out full history, install locked tools through mise, then run
-only `task verify`. That task first restores locked dependencies before
-building, checking, and testing. Make all three `verify` matrix checks required
-in the repository's branch rules to block merging when verification fails.
+`task verify` and compare the findings with an available baseline artifact. That
+task first restores locked dependencies before building, checking, and testing.
+Make all three `verify` matrix checks required in the repository's branch rules
+to block merging when verification fails.
 
 `check` and `verify` write SBOMs, per-function complexity metrics, and the
-register of inline suppressions to the ignored `reports/` folder. Another system
-is assumed to collect them; see [analysis reports](docs/reports.md).
+register of inline suppressions to the ignored `reports/` folder. CI keeps the
+artifacts for three days, the accepted PoC retention. Each run records check
+completion, diagnostic logs, and artifact hashes; see
+[analysis reports](docs/reports.md).
 
 `task check:actions` runs [actionlint](https://github.com/rhysd/actionlint),
 including its ShellCheck integration. Both `check` and `verify` include it;
