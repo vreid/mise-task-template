@@ -12,9 +12,15 @@ directory=$(mktemp -d)
 trap 'rm -rf "$directory"' EXIT
 repo=${GH_REPO:?Expected GH_REPO in CI}
 branch=${REPORT_BASE_BRANCH:?Expected REPORT_BASE_BRANCH in CI}
-gh api --method GET "repos/$repo/actions/workflows/verify.yml/runs" \
+# The trend is informational: a GitHub API failure must not fail a required
+# check, so it reports a missing baseline instead.
+if ! gh api --method GET "repos/$repo/actions/workflows/verify.yml/runs" \
   -f branch="$branch" -f status=success -f per_page=10 \
-  --jq '.workflow_runs[] | [.id, .head_sha] | @tsv' >"$directory/runs"
+  --jq '.workflow_runs[] | [.id, .head_sha] | @tsv' >"$directory/runs"; then
+  echo "Could not list previous runs; comparing without a baseline." >&2
+  node scripts/report-trend.mts
+  exit "$?"
+fi
 
 while IFS=$'\t' read -r run commit; do
   if [ "$run" = "${GITHUB_RUN_ID:-}" ]; then
