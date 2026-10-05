@@ -73,12 +73,19 @@ function table(
 async function main(): Promise<void> {
   const directory = await mkdtemp(join(tmpdir(), "sloc-base-"));
   const worktree = join(directory, "base");
+  // Add the worktree before the try, so a bad BASE fails with Git's own error
+  // instead of a cleanup error about a worktree that was never created.
   try {
     run(
       "git",
       ["worktree", "add", "--quiet", "--detach", worktree, base],
       root,
     );
+  } catch (error) {
+    await rm(directory, { recursive: true, force: true });
+    throw error;
+  }
+  try {
     const before = count(worktree);
     const after = count(root);
     const commit = run("git", ["rev-parse", "--short", base], root).trim();

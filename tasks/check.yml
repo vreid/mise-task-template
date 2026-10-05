@@ -72,9 +72,9 @@ tasks:
     vars:
       BASE: '{{.BASE | default "origin/main"}}'
     env:
-      BASE_REF: "{{.BASE}}"
+      SLOC_BASE: "{{.BASE}}"
     cmds:
-      - node scripts/sloc-diff.mts "$BASE_REF"
+      - node scripts/sloc-diff.mts "$SLOC_BASE"
 
   lizard:
     desc: Require strict function complexity, size, and parameter limits

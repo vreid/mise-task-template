@@ -71,9 +71,9 @@ jobs:
           install_args: --locked task node github:boyter/scc
           cache: false
 
-      - run: task check:sloc-diff BASE="origin/$BASE_REF"
+      - run: task check:sloc-diff BASE="origin/$TARGET_BRANCH"
         env:
-          BASE_REF: ${{ github.base_ref }}
+          TARGET_BRANCH: ${{ github.base_ref }}
 
       # Pull requests from forks get a read-only token and cannot comment.
       - if: github.event.pull_request.head.repo.full_name == github.repository
