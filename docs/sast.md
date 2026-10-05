@@ -6,7 +6,8 @@ Python: **OS command injection**, mapped to
 and **CWE-78**, ranked ninth in the
 [2025 CWE Top 25](https://cwe.mitre.org/top25/archive/2025/2025_cwe_top25.html).
 This demonstrates a tested security rule for every example language; it does not
-establish coverage of the entire OWASP Top 10 or CWE Top 25.
+establish coverage of the entire OWASP Top 10 or CWE Top 25. The
+[coverage matrix](owasp-cwe-coverage.md) shows what each category relies on.
 
 ## Tasks
 
@@ -37,20 +38,25 @@ original paths in findings. Keep future TypeScript rules in that directory too.
 
 ## What the rules model
 
-Each rule uses taint analysis: values read from the environment are treated as
-untrusted, followed through local assignments and expressions, and reported when
-used as shell command text. `DEMO_INPUT` is the example environment variable;
-the rules match any environment-variable name.
+Each rule uses taint analysis: environment variables and command-line arguments
+are treated as untrusted, followed through local assignments and expressions,
+and reported when used as shell command text. A shell is any of `sh`, `bash`,
+`dash`, `zsh`, `ksh`, `cmd`, or PowerShell, with or without a `/bin/` or
+`/usr/bin/` path. `DEMO_INPUT` is the example environment variable; the rules
+match any name.
 
-| Language   | Sources                               | Shell sinks                                           |
-| ---------- | ------------------------------------- | ----------------------------------------------------- |
-| TypeScript | `process.env[key]`, `process.env.KEY` | `exec`, `execSync`                                    |
-| C#         | `Environment.GetEnvironmentVariable`  | `Process.Start` with `sh` or `/bin/sh`                |
-| C          | `getenv`                              | `system`, `popen`                                     |
-| C++        | `getenv`, `std::getenv`               | `system`, `std::system`, `popen`                      |
-| Go         | `os.Getenv`                           | `exec.Command` with `sh -c` or `/bin/sh -c`           |
-| Rust       | `std::env::var`                       | `Command::new` with `sh`/`/bin/sh` and chained `.arg` |
-| Python     | `os.getenv`, `os.environ` lookups     | `os.system`, `subprocess.run` with `shell=True`       |
+| Language   | Sources                                                            | Shell sinks                                                                              |
+| ---------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| TypeScript | `process.env[key]`, `process.env.KEY`, `process.argv`              | `exec`, `execSync`; `spawn`/`spawnSync` with `shell: true`; a shell given `[..., input]` |
+| C#         | `Environment.GetEnvironmentVariable`, `GetCommandLineArgs`, `args` | `Process.Start(shell, input)`, `new ProcessStartInfo(shell, input)`                      |
+| C          | `getenv`, `argv[i]`                                                | `system`, `popen`, `execl`/`execlp` of a shell                                           |
+| C++        | `getenv`, `std::getenv`, `argv[i]`                                 | `system`, `std::system`, `popen`, `execl`/`execlp` of a shell                            |
+| Go         | `os.Getenv`, `os.Args`                                             | `exec.Command`/`exec.CommandContext` of a shell                                          |
+| Rust       | `std::env::var`, `var_os`, `args`, `args_os`                       | `Command::new(shell)` with chained `.arg` or an `.args` array                            |
+| Python     | `os.getenv`, `os.environ` lookups, `sys.argv`                      | `os.system`, `os.popen`, any `subprocess` call with `shell=True`                         |
+
+The C# and C/C++ argument sources match the conventional names `args` and
+`argv`, so code using other names for them is not covered.
 
 Findings have Opengrep severity `ERROR`, impact `HIGH`, and CWE/OWASP metadata.
 Messages explain the intended remediation: select a fixed executable and pass
@@ -58,11 +64,12 @@ input as separate arguments without a shell. The safe fixtures use a fixed
 `printf` executable and a fixed format string, keeping input in a data argument.
 This does not make arbitrary executables, options, or format strings safe.
 
-The deliberately narrow sources and sinks keep the proof of concept reviewable.
-HTTP input, command-line arguments, other process APIs, other shells, custom
-wrappers, cross-file flows, and sanitizers are not modeled. Existing application
-code and any future projects need rules for their actual trust boundaries and
-APIs. Absence of a finding is not evidence that arbitrary code is safe.
+The fixtures include the 14 variants an adversarial review used to bypass the
+earlier, environment-only rules; all are now caught. HTTP input, files, stdin,
+custom wrappers, cross-file flows, and sanitizers are still not modeled.
+Existing application code and any future projects need rules for their actual
+trust boundaries and APIs. Absence of a finding is not evidence that arbitrary
+code is safe.
 
 ## Fixtures and rule maintenance
 

@@ -84,13 +84,13 @@ Each example owns its code and project files. The root owns tool selection, task
 orchestration, hooks, and shared policies. Details:
 [examples and tool versions](docs/examples.md), [Python checks](docs/python.md),
 [language checks](docs/language-checks.md), [C/C++ checks](docs/c-cpp.md),
-[security checks](docs/security.md), and [source security rules](docs/sast.md).
-Repository size and maintainability checks are described in
-[code metrics](docs/code-metrics.md). Generated outputs are described in
-[analysis reports](docs/reports.md), and the rules for inline exceptions in
-[suppressions](docs/suppressions.md). Why the next security budget should go to
-an AI coding harness rather than GHAS is argued in
-[security spend](docs/security-spend.md).
+[security checks](docs/security.md), [source security rules](docs/sast.md), and
+[OWASP and CWE coverage](docs/owasp-cwe-coverage.md). Repository size and
+maintainability checks are described in [code metrics](docs/code-metrics.md).
+Generated outputs are described in [analysis reports](docs/reports.md), and the
+rules for inline exceptions in [suppressions](docs/suppressions.md). Why the
+next security budget should go to an AI coding harness rather than GHAS is
+argued in [security spend](docs/security-spend.md).
 
 The [requirements handover](docs/requirements-handover.md) records the agreed
 PoC scope, requirement coverage, remaining work, and validation evidence for an
