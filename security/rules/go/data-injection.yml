@@ -128,6 +128,14 @@
                     "pattern-either":
                       [
                         { "pattern": "http.Get($INPUT)" },
+                        { "pattern": "http.Head($INPUT)" },
+                        { "pattern": "http.Post($INPUT, ...)" },
+                        { "pattern": "http.PostForm($INPUT, ...)" },
+                        {
+                          "pattern":
+                            "http.NewRequestWithContext($CONTEXT, $METHOD,
+                            $INPUT, ...)",
+                        },
                         { "pattern": "http.NewRequest($METHOD, $INPUT, ...)" },
                       ],
                   },

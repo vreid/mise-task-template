@@ -84,6 +84,27 @@
             {
               "patterns":
                 [
+                  { "pattern": "$FS.$FUNCTION($INPUT, ...)" },
+                  {
+                    "metavariable-regex":
+                      {
+                        "metavariable": "$FS",
+                        "regex": "^(?:node:)?fs(?:/promises)?$",
+                      },
+                  },
+                  {
+                    "metavariable-regex":
+                      {
+                        "metavariable": "$FUNCTION",
+                        "regex": "^(?:readFile|writeFile|appendFile|open|unlink|rm|readdir|stat|createReadStream|createWriteStream)(?:Sync)?$",
+                      },
+                  },
+                  { "focus-metavariable": "$INPUT" },
+                ],
+            },
+            {
+              "patterns":
+                [
                   {
                     "pattern-either":
                       [
@@ -188,6 +209,14 @@
                         { "pattern": "$ELEMENT.innerHTML = $INPUT" },
                         { "pattern": "$ELEMENT.outerHTML = $INPUT" },
                         { "pattern": "document.write($INPUT)" },
+                        { "pattern": "document.writeln($INPUT)" },
+                        {
+                          "pattern":
+                            "$ELEMENT.insertAdjacentHTML($POSITION, $INPUT)",
+                        },
+                        {
+                          "pattern": "$RANGE.createContextualFragment($INPUT)",
+                        },
                       ],
                   },
                   { "focus-metavariable": "$INPUT" },
