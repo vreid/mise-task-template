@@ -3,24 +3,27 @@
 This matrix shows, for every OWASP Top 10:2025 category and every 2025 CWE Top
 25 entry, which check in this template covers it and how strong the evidence is.
 The 41 Opengrep rules and language-linter fixtures prove concrete unsafe and
-safe API patterns. OS command injection, SQL injection, path traversal, and SSRF
-are tested in all seven languages. Raw HTML is tested in five; C/C++
-web-framework coverage is still application-specific. Weak hashing is tested in
-every language. Some memory diagnostics still rely on enabled compiler/analyzer
-rules and runtime instrumentation. Authorization, authentication, CSRF, upload
-handling, and other business-logic decisions require an application's trust
-boundaries. Lists as of 2026-10-05.
+safe API patterns, and only those: a `Tested` cell means the APIs listed in
+[source security rules](sast.md#additional-data-flow-checks) are caught, not
+every API through which the weakness can occur. OS command injection, SQL
+injection, path traversal, and SSRF are tested for those APIs in all seven
+languages. Raw HTML is tested in five; C/C++ web-framework coverage is still
+application-specific. Weak hashing is tested in every language. Some memory
+diagnostics still rely on enabled compiler/analyzer rules and runtime
+instrumentation. Authorization, authentication, CSRF, upload handling, and other
+business-logic decisions require an application's trust boundaries. Lists as of
+2026-10-05.
 
 ## Evidence levels
 
-| Level    | Meaning                                                                                                                                        |
-| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| Tested   | A fixture in `security/tests` or `security/linter-tests` fails `task test` if the check stops catching it, or starts flagging the safe variant |
-| Rule     | An enabled rule targets it, but no fixture here proves it; the tool's own tests are the only evidence                                          |
-| Language | The language or a forbidden construct prevents it: memory safety, no runtime code evaluation, no `unsafe`                                      |
-| Runtime  | ASan and UBSan catch it during the C/C++ tests, but only on executed paths                                                                     |
-| Context  | No application-specific static rule is configured here; review, threat modeling, DAST, and penetration tests supply the missing evidence       |
-| Gap      | Detectable in principle, but nothing here checks it                                                                                            |
+| Level    | Meaning                                                                                                                                                     |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tested   | A fixture in `security/tests` or `security/linter-tests` fails `task test` if the check stops catching the listed APIs, or starts flagging the safe variant |
+| Rule     | An enabled rule targets it, but no fixture here proves it; the tool's own tests are the only evidence                                                       |
+| Language | The language or a forbidden construct prevents it: memory safety, no runtime code evaluation, no `unsafe`                                                   |
+| Runtime  | ASan and UBSan catch it during the C/C++ tests, but only on executed paths                                                                                  |
+| Context  | No application-specific static rule is configured here; review, threat modeling, DAST, and penetration tests supply the missing evidence                    |
+| Gap      | Detectable in principle, but nothing here checks it                                                                                                         |
 
 The template's examples have no web, database, or file-upload code. The tested
 web and database APIs are demonstration fixtures, not production features. A

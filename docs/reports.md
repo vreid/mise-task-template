@@ -30,9 +30,10 @@ specific findings; they are not a deduplicated issue tracker.
 Both Opengrep passes run even if the first finds a vulnerability. The module
 pass writes an explicit empty result when there are no `.mts` or `.cts` files.
 
-If a process is forcibly killed, the manifest retains unfinished states. After
-confirming no analysis process is running, remove the ignored `.analysis-lock/`
-directory before starting another complete run. Individual `check:*` tasks are
+If a process is interrupted, the manifest retains unfinished states. The ignored
+`.analysis-lock/` directory records the running process's ID; the next run
+removes a lock whose process no longer exists, and refuses to start while
+another run in the same checkout is still active. Individual `check:*` tasks are
 useful diagnostics but do not create a complete run; use `check` or `verify`
 before collecting or archiving evidence.
 

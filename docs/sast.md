@@ -81,14 +81,17 @@ request query/form/body sources in TypeScript, Python, Go, and C#. The exact
 patterns in each rule are the supported boundary; no cross-file analysis or
 arbitrary wrapper inference is claimed.
 
-| Language   | Tested APIs                                                   |
-| ---------- | ------------------------------------------------------------- |
-| TypeScript | `query`, Node `fs`, `fetch`, DOM `innerHTML`                  |
-| Python     | DB-API `execute`, `open`, Requests, MarkupSafe                |
-| Go         | `database/sql`, `os.ReadFile`, `http.Get`, `template.HTML`    |
-| C#         | `CommandText`, `File.ReadAllText`, `HttpClient`, `HtmlString` |
-| Rust       | SQLx, `std::fs`, Reqwest, Maud `PreEscaped`                   |
-| C/C++      | SQLite, `fopen`, libcurl                                      |
+Each rule recognizes only the calls below; the same weakness through any other
+API is not detected. Lists come from the rules' sink patterns.
+
+| Language   | SQL                                                             | File paths                                                                           | Outgoing requests                                                                | Raw HTML                                                                                         |
+| ---------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| TypeScript | `.query`, `.execute`                                            | `fs` and `fs/promises` read, write, append, open, unlink, rm, readdir, stat, streams | `fetch`, `axios.get`                                                             | `innerHTML`, `outerHTML`, `document.write(ln)`, `insertAdjacentHTML`, `createContextualFragment` |
+| Python     | `.execute`, `.executemany`, `.executescript`                    | `open`, `pathlib.Path`                                                               | Requests (all verbs and `request`), `httpx.get`/`post`, `urllib.request.urlopen` | `markupsafe.Markup`, Django `mark_safe`                                                          |
+| Go         | `.Query`, `.QueryContext`, `.Exec`                              | `os.Open`, `os.ReadFile`                                                             | `http.Get`, `Head`, `Post`, `PostForm`, `NewRequest(WithContext)`                | `template.HTML`                                                                                  |
+| C#         | `SqlCommand` constructors, `CommandText`, Dapper-style `.Query` | `File.ReadAllText`, `File.OpenRead`                                                  | `HttpClient.GetAsync`, `GetStringAsync`                                          | `HtmlString`, `Html.Raw`                                                                         |
+| Rust       | `sqlx::query`, `rusqlite` `execute`                             | `std::fs::read`, `read_to_string`                                                    | `reqwest::get`                                                                   | Maud `PreEscaped`                                                                                |
+| C/C++      | `sqlite3_exec`, `sqlite3_prepare_v2`                            | `fopen`                                                                              | libcurl `CURLOPT_URL`                                                            | none                                                                                             |
 
 Fixtures prove that bound SQL parameters, fixed file paths and destinations, and
 escaped/text output stay unflagged. They do not prove arbitrary validation
