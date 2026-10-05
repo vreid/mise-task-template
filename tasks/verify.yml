@@ -4,27 +4,7 @@ tasks:
   default:
     desc: Restore dependencies, build, check, and test with strict formatting
     cmds:
-      # Runs last, even when a check fails, so failed runs keep their findings.
-      - defer: { task: ":check:findings" }
-      - task: :check:manifest
-      - task: :deps
-      - task: :build
-      - task: lint
-      - task: :check:metrics
-      - task: :check:shell
-      - task: :check:docs
-      - task: :check:actions
-      - task: :check:sast
-      # Generate reports before the secret scan so exported files are covered.
-      - task: :check:suppressions
-      - task: :check:sbom
-      - task: :check:secrets
-      # Commits being verified must not add secrets, even ones deleted later.
-      - task: :check:secrets:history
-      - task: :check:licenses
-      - task: :check:vulnerabilities
-      - task: fmt
-      - task: :test
+      - node scripts/analyze.mts verify
 
   fmt:
     desc: Require consistent formatting across all supported files

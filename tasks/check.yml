@@ -11,22 +11,7 @@ tasks:
       SBOMs, complexity metrics, and the suppression register are written to reports/.
       Use task verify to enforce formatting or task fix to apply it.
     cmds:
-      # Runs last, even when a check fails, so failed runs keep their findings.
-      - defer: { task: findings }
-      - task: manifest
-      - task: fmt
-      - task: lint
-      - task: metrics
-      - task: shell
-      - task: docs
-      - task: actions
-      - task: sast
-      # Generate reports before the secret scan so exported files are covered.
-      - task: suppressions
-      - task: sbom
-      - task: secrets
-      - task: licenses
-      - task: vulnerabilities
+      - node scripts/analyze.mts check
 
   fmt:
     desc:
@@ -167,15 +152,17 @@ tasks:
         --ignore-gitleaks-allow --report-format json --report-path
         reports/secrets-history.json
 
-  manifest:
-    desc: Record the analyzed commit and platform in reports/manifest.json
-    cmds:
-      - bash scripts/report-manifest.sh
-
   findings:
     desc: Classify all reported findings as high, medium, or low
     cmds:
       - node scripts/findings.mts
+
+  trend:
+    desc:
+      Compare findings with REPORT_BASELINE or the previous successful CI
+      artifact
+    cmds:
+      - bash scripts/report-trend.sh
 
   suppressions:
     desc:
@@ -195,6 +182,10 @@ tasks:
     desc: Warn about OSI policy findings in the repository SBOM
     cmds:
       - task: sbom
+      - task: licenses:scan
+
+  licenses:scan:
+    cmds:
       - cmd: bash scripts/check-licenses.sh
         platforms: [linux, darwin]
       - cmd:
@@ -208,6 +199,10 @@ tasks:
       are not accepted with a reason
     cmds:
       - task: sbom
+      - task: vulnerabilities:scan
+
+  vulnerabilities:scan:
+    cmds:
       - bash scripts/check-vulnerabilities.sh
 
   audit:

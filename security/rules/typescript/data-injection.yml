@@ -1,0 +1,199 @@
+{
+  "rules":
+    [
+      {
+        "id": "poc.typescript.input-to-sql",
+        "languages": ["typescript"],
+        "mode": "taint",
+        "severity": "HIGH",
+        "message":
+          "Untrusted input reaches SQL injection sensitive API (CWE-89). Use a
+          constant statement and bound parameters.",
+        "metadata":
+          {
+            "category": "security",
+            "confidence": "HIGH",
+            "cwe": ["CWE-89: SQL injection"],
+            "owasp": ["A05:2025"],
+          },
+        "pattern-sources":
+          [
+            {
+              "pattern-either":
+                [
+                  { "pattern": "process.env[$KEY]" },
+                  { "pattern": "process.env.$KEY" },
+                  { "pattern": "process.argv" },
+                  { "pattern": "$REQUEST.query" },
+                  { "pattern": "$REQUEST.params" },
+                  { "pattern": "$REQUEST.body" },
+                  { "pattern": "$REQUEST.url" },
+                ],
+            },
+          ],
+        "pattern-sinks":
+          [
+            {
+              "patterns":
+                [
+                  {
+                    "pattern-either":
+                      [
+                        { "pattern": "$DB.query($INPUT, ...)" },
+                        { "pattern": "$DB.execute($INPUT, ...)" },
+                      ],
+                  },
+                  { "focus-metavariable": "$INPUT" },
+                ],
+            },
+          ],
+      },
+      {
+        "id": "poc.typescript.input-to-path",
+        "languages": ["typescript"],
+        "mode": "taint",
+        "severity": "HIGH",
+        "message":
+          "Untrusted input reaches Path traversal sensitive API (CWE-22).
+          Resolve a trusted identifier through an allowlist; do not open an
+          arbitrary input path.",
+        "metadata":
+          {
+            "category": "security",
+            "confidence": "HIGH",
+            "cwe": ["CWE-22: Path traversal"],
+            "owasp": ["A01:2025"],
+          },
+        "pattern-sources":
+          [
+            {
+              "pattern-either":
+                [
+                  { "pattern": "process.env[$KEY]" },
+                  { "pattern": "process.env.$KEY" },
+                  { "pattern": "process.argv" },
+                  { "pattern": "$REQUEST.query" },
+                  { "pattern": "$REQUEST.params" },
+                  { "pattern": "$REQUEST.body" },
+                  { "pattern": "$REQUEST.url" },
+                ],
+            },
+          ],
+        "pattern-sinks":
+          [
+            {
+              "patterns":
+                [
+                  {
+                    "pattern-either":
+                      [
+                        { "pattern": "fs.readFileSync($INPUT, ...)" },
+                        { "pattern": "fs.readFile($INPUT, ...)" },
+                        { "pattern": "fs.createReadStream($INPUT, ...)" },
+                        { "pattern": "fsp.readFile($INPUT, ...)" },
+                      ],
+                  },
+                  { "focus-metavariable": "$INPUT" },
+                ],
+            },
+          ],
+      },
+      {
+        "id": "poc.typescript.input-to-ssrf",
+        "languages": ["typescript"],
+        "mode": "taint",
+        "severity": "HIGH",
+        "message":
+          "Untrusted input reaches Server-side request forgery sensitive API
+          (CWE-918). Allowlist destination schemes, hosts, and ports before
+          issuing a request.",
+        "metadata":
+          {
+            "category": "security",
+            "confidence": "HIGH",
+            "cwe": ["CWE-918: Server-side request forgery"],
+            "owasp": ["A01:2025"],
+          },
+        "pattern-sources":
+          [
+            {
+              "pattern-either":
+                [
+                  { "pattern": "process.env[$KEY]" },
+                  { "pattern": "process.env.$KEY" },
+                  { "pattern": "process.argv" },
+                  { "pattern": "$REQUEST.query" },
+                  { "pattern": "$REQUEST.params" },
+                  { "pattern": "$REQUEST.body" },
+                  { "pattern": "$REQUEST.url" },
+                ],
+            },
+          ],
+        "pattern-sinks":
+          [
+            {
+              "patterns":
+                [
+                  {
+                    "pattern-either":
+                      [
+                        { "pattern": "fetch($INPUT, ...)" },
+                        { "pattern": "axios.get($INPUT, ...)" },
+                      ],
+                  },
+                  { "focus-metavariable": "$INPUT" },
+                ],
+            },
+          ],
+      },
+      {
+        "id": "poc.typescript.input-to-html",
+        "languages": ["typescript"],
+        "mode": "taint",
+        "severity": "HIGH",
+        "message":
+          "Untrusted input reaches Cross-site scripting sensitive API (CWE-79).
+          Use the framework HTML escaping facility or textContent instead of raw
+          HTML.",
+        "metadata":
+          {
+            "category": "security",
+            "confidence": "HIGH",
+            "cwe": ["CWE-79: Cross-site scripting"],
+            "owasp": ["A05:2025"],
+          },
+        "pattern-sources":
+          [
+            {
+              "pattern-either":
+                [
+                  { "pattern": "process.env[$KEY]" },
+                  { "pattern": "process.env.$KEY" },
+                  { "pattern": "process.argv" },
+                  { "pattern": "$REQUEST.query" },
+                  { "pattern": "$REQUEST.params" },
+                  { "pattern": "$REQUEST.body" },
+                  { "pattern": "$REQUEST.url" },
+                ],
+            },
+          ],
+        "pattern-sinks":
+          [
+            {
+              "patterns":
+                [
+                  {
+                    "pattern-either":
+                      [
+                        { "pattern": "$ELEMENT.innerHTML = $INPUT" },
+                        { "pattern": "$ELEMENT.outerHTML = $INPUT" },
+                        { "pattern": "document.write($INPUT)" },
+                      ],
+                  },
+                  { "focus-metavariable": "$INPUT" },
+                ],
+            },
+          ],
+      },
+    ],
+}

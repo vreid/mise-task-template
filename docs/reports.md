@@ -1,96 +1,105 @@
 # Analysis reports
 
-`task check` and `task verify` write machine-readable reports to the Git-ignored
-`reports/` folder at the repository root. Every run regenerates them; they are
-never committed. CI uploads the folder as an artifact named after the analyzed
-commit and platform, kept for three days.
+`task check` and `task verify` start a fresh analysis run in the Git-ignored
+`reports/` directory. Previous output is removed before any check runs. A lock
+prevents concurrent runs from mixing evidence. CI uploads the reports for three
+days, the accepted retention policy for this proof of concept.
 
-| File                   | Written by              | Content                                                                     |
-| ---------------------- | ----------------------- | --------------------------------------------------------------------------- |
-| `manifest.json`        | `check:manifest`        | Analyzed commit, uncommitted-changes flag, timestamp, and platform          |
-| `findings.json`        | `check:findings`        | Every finding below, classified high, medium, or low, with accepted reasons |
-| `sbom.cdx.json`        | `check:sbom`            | CycloneDX JSON SBOM of the repository inventory                             |
-| `sbom.spdx.json`       | `check:sbom`            | SPDX JSON SBOM of the same inventory                                        |
-| `sbom.syft.json`       | `check:sbom`            | Syft's lossless inventory, which Grant and Grype evaluate                   |
-| `vulnerabilities.json` | `check:vulnerabilities` | Grype matches, including accepted ones and their reasons                    |
-| `licenses.json`        | `check:licenses`        | Grant's decision for every package (Linux and macOS)                        |
-| `sast.json`            | `check:sast`            | Opengrep findings; `sast-modules.json` covers `.mts` and `.cts` files       |
-| `secrets.json`         | `check:secrets`         | Betterleaks findings, redacted; `secrets-history.json` covers Git history   |
-| `suppressions.json`    | `check:suppressions`    | Every inline suppression with its rules, reason, and commit                 |
-| `complexity.csv`       | `check:lizard`          | NLOC, cyclomatic complexity (CCN), tokens, parameters, length per function  |
-| `sloc.json`            | `check:scc`             | Files, lines, and code lines per language and file                          |
-| `sloc-diff.md`         | `check:sloc-diff`       | Code lines per language compared with a target branch                       |
+## Evidence and completion
 
-## Commit identity
+`scripts/analyze.mts` invokes the existing Task checks, records their
+completion, and continues independent checks after failures. A failed
+prerequisite causes its dependents to be recorded as skipped. The final command
+fails if any required check fails, skips, or omits an expected output.
 
-Every report belongs to the commit in `manifest.json`, which is independent of
-any release version scheme; `mise.lock` and the lockfiles at that commit pin the
-tools that produced them. The manifest also records whether the working tree had
-uncommitted changes. The SBOM uses the same commit as its version, with `-dirty`
-for uncommitted changes, unless release tooling sets `REPORT_NAME` and
-`REPORT_VERSION`. The suppression register and the findings report repeat the
-commit.
+`manifest.json` records the analyzed commit, dirty flag, unique run ID,
+timestamp, platform, check states, exit codes, log paths, and SHA-256 hashes of
+each check's outputs. `findings.json` repeats the run and commit, records
+`complete` and `status`, and classifies the findings. A missing, changed,
+malformed, or structurally invalid expected report produces an explicit
+reporting finding and fails collection. Pending and skipped checks are
+incomplete evidence, never a zero-finding success.
 
-## Upload
+Every check's stdout and stderr are retained under `logs/`. Located language
+linter and compiler diagnostics become individual low-severity entries. Other
+failed checks retain their complete diagnostic output in a low-severity check
+entry. The full logs remain available for context and for diagnostics without a
+standard location format. These check entries may accompany a scanner's more
+specific findings; they are not a deduplicated issue tracker.
 
-Each CI job uploads `reports/` as `reports-<commit>-<runner>`, even when
-verification fails, and keeps it for three days. That demonstrates that the
-reports leave the runner. Long-term storage, a findings platform, or a component
-analysis service such as Dependency-Track is not chosen yet; pushing to one
-would replace or follow the artifact upload.
+Both Opengrep passes run even if the first finds a vulnerability. The module
+pass writes an explicit empty result when there are no `.mts` or `.cts` files.
 
-## Classification
+If a process is forcibly killed, the manifest retains unfinished states. After
+confirming no analysis process is running, remove the ignored `.analysis-lock/`
+directory before starting another complete run. Individual `check:*` tasks are
+useful diagnostics but do not create a complete run; use `check` or `verify`
+before collecting or archiving evidence.
 
-`findings.json` lists every finding from the report files above with a
-`severity` of high, medium, or low. Grype, Opengrep, and any other tool with its
-own severity keep it: critical and high (or `ERROR`) become high, medium (or
-`WARNING`) becomes medium, and everything else low. Findings from tools without
-a severity are low: Betterleaks, Grant, and suppression register problems. Each
-entry also keeps the tool's own severity as `native`, and a `state` of `open` or
-`accepted`; accepted findings carry the reason from `.grype.yaml`.
+## Files
 
-Lint, compiler, and complexity findings fail the build before they could be
-archived as open findings, so they are low by the same rule but do not appear in
-`findings.json`. The findings report is written last, even when a check fails,
-so a failed run keeps the findings it reached.
+| File                                   | Content                                                      |
+| -------------------------------------- | ------------------------------------------------------------ |
+| `manifest.json`                        | Run identity, check completion, and artifact hashes          |
+| `findings.json`                        | Classified findings, evidence completeness, and check states |
+| `logs/`                                | Complete per-check console diagnostics                       |
+| `sbom.cdx.json`                        | CycloneDX inventory                                          |
+| `sbom.spdx.json`                       | SPDX inventory                                               |
+| `sbom.syft.json`                       | Lossless inventory consumed by Grype and Grant               |
+| `vulnerabilities.json`                 | Native Grype matches and accepted findings                   |
+| `licenses.json`                        | Native Grant findings on Linux and macOS                     |
+| `sast.json`, `sast-modules.json`       | Native Opengrep results                                      |
+| `secrets.json`, `secrets-history.json` | Redacted secret findings; history is included by verify      |
+| `suppressions.json`                    | Inline exceptions, reasons, and Git attribution              |
+| `complexity.csv`                       | Per-function NLOC, CCN, tokens, parameters, and length       |
+| `sloc.json`                            | Current size per language and file                           |
+| `sloc-diff.md`                         | Net code-line difference against a target branch             |
+| `trend.md`, `trend.json`               | Comparison with an available baseline run                    |
 
-## SBOM scope
+## Classification and acceptance
 
-The SBOM describes the same full-repository inventory that the license and
-vulnerability checks evaluate, from a single Syft scan. It includes the example
-applications, their lockfiles and build outputs, and the restored development
-dependencies and tool binaries in the working tree. It is therefore a
-development and supply-chain inventory, not the release SBOM of a single shipped
-product; a product release would scan its release artifact with the same
-configuration. Tools that mise installs outside the repository are not included.
-See [inventory coverage](security.md#inventory-coverage).
+Native critical/high/ERROR findings map to high, medium/WARNING/moderate to
+medium, and other native severities to low. Checks without security severities
+use low. Evidence-integrity failures are high. Failure thresholds remain those
+of the individual checks; assigning low does not make a failed check advisory.
 
-Syft excludes `reports/` and the linter fixtures, so an earlier SBOM never feeds
-into the next inventory. File metadata cataloging is disabled: Syft's CycloneDX
-output would otherwise list package evidence files under absolute host paths,
-exposing local directory names. The Syft JSON records Syft's effective
-configuration, which includes local cache paths, so hand the CycloneDX or SPDX
-file to other systems.
+A Grype acceptance is valid only when every applied ignore rule has a reason.
+Missing reasons stay null, the finding stays open, and both the standalone
+vulnerability task and final collection fail. The collector never invents a
+rationale from the availability of a fix.
 
-Reports are generated before the secret scan, so Betterleaks also checks the
-files that are meant to leave the repository.
+## Version identity and inventory
 
-## Complexity and size
+The commit and run ID identify the evidence independently of a release-version
+scheme. The dirty flag distinguishes local modifications. `mise.lock` at that
+commit pins the tools. The SBOM uses the commit, with `-dirty` where relevant,
+unless release tooling supplies `REPORT_NAME` and `REPORT_VERSION`.
 
-`complexity.csv` lists every function, and the top-level code of each file, in
-every language Lizard supports here, including those within the limits. Its
-header names the columns; `location` combines function, line range, and file.
-The file is written before the limit check runs, so it exists even when the
-check fails.
+The inventory includes the applications, their dependency locks and build
+outputs, and restored development dependencies within the repository. It is a
+development inventory; a shipped product needs an inventory of its release
+artifact. Tools installed outside the repository are not included. Syft excludes
+Git metadata, generated reports, and the dedicated linter fixtures. Share the
+CycloneDX or SPDX version; lossless Syft output can contain local cache paths.
+See [security details](security.md).
 
-`sloc-diff.md` compares code lines per language between a target branch and the
-working tree, using the same scc settings and ignore files on both sides. On
-every pull request, CI posts it as a comment, comparing with the pull request's
-target branch as it stands, and updates the comment on later pushes. Run it
-locally with `task check:sloc-diff BASE=origin/main`. See
-[code metrics](code-metrics.md).
+## Comparisons and retention
 
-## Not implemented yet
+`check:sloc-diff BASE=origin/main` applies the current working tree's root and
+nested ignore policy to both snapshots. A change to `.sccignore`, `.gitignore`,
+or `.ignore` therefore cannot masquerade as added or removed source. Its metric
+is net SLOC, not separate added and deleted lines. CI posts the result for
+same-repository pull requests; fork results remain in the job output.
 
-- A receiving system that keeps reports longer than the three-day artifact.
-- Trends across runs, which need that system.
+`task check:trend` compares classified open and accepted findings with a
+baseline folder supplied through `REPORT_BASELINE`. In CI it looks for a
+retained artifact from a previous successful run of the target branch on the
+same runner. Missing or pre-upgrade baselines are explicitly reported as
+unavailable. Incomplete analyses and different platforms are not compared.
+Changes in tools, rules, source, and vulnerability databases can all affect the
+observed counts.
+
+The workflow uploads reports even when verification fails. Three-day artifacts
+are sufficient for the agreed PoC; a long-term reporting service and its
+retention policy remain deployment decisions. No Dependency-Track or SecObserve
+integration is claimed.

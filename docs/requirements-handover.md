@@ -2,15 +2,17 @@
 
 This document hands the repository and the agreed interpretation of its
 requirements to another developer or coding CLI. It records decisions from the
-discussion, implementation evidence, and remaining work as of 2026-10-04. Use it
+discussion, implementation evidence, and remaining work as of 2026-10-05. Use it
 to review the proof of concept without reopening settled scope decisions.
 
 The repository demonstrates a shared analysis toolchain across seven languages.
-Most local checks exist, and all three CI platforms pass. Checks write SBOMs,
-complexity metrics, and a suppression register to `reports/`; delivering those
-files to other systems, a version manifest, and baseline metrics comparison
-remain unfinished. Dependency-Track and SecObserve are assumed reporting
-destinations, but this repository does not yet integrate them.
+Analysis runs record fresh, hashed artifacts, check completion states,
+classified findings, and full diagnostic logs. Forty-one tested Opengrep rules
+complement the language analyzers. CI retains artifacts for three days and
+compares them with an available baseline; this retention and the existing
+advisory license policy were reaffirmed for the PoC on 2026-10-05.
+Dependency-Track and SecObserve remain optional deployment destinations, not
+implemented integrations.
 
 ## Source and scope
 
@@ -51,10 +53,10 @@ detection, a successful run on every platform, or completed central reporting.
 
 | Requirement                                | Current coverage and remaining qualification                                                                                                                                                                                                                                                      |
 | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Scan source for vulnerabilities            | Opengrep command-injection rules exist for all seven languages. Compiler and language security checks add other signals. The SAST rules deliberately cover a narrow example.                                                                                                                      |
-| OWASP Top 10 and CWE Top 25                | Command injection (CWE-78/77, A05) is tested in all seven languages, including 14 known bypass variants. The [coverage matrix](owasp-cwe-coverage.md) maps every category to a tested fixture, an untested rule, language safety, or a gap, and names what static analysis cannot detect.         |
-| Classify findings by severity              | `reports/findings.json` classifies every reported finding high, medium, or low. Tools with a native severity keep it; everything else is low. Accepted findings keep their recorded reason.                                                                                                       |
-| Archivable reports tied to a version       | `check` and `verify` write SBOMs, findings, metrics, and the suppression register to `reports/`, identified by the analyzed commit in `manifest.json`. CI uploads them as a three-day artifact; a long-term receiving system is not chosen yet.                                                   |
+| Scan source for vulnerabilities            | Forty-one tested Opengrep rules cover command/SQL injection, path traversal, SSRF, raw HTML, weak hashes, and disabled TLS across their documented languages and APIs. Native analyzers add other signals.                                                                                        |
+| OWASP Top 10 and CWE Top 25                | The coverage matrix records tested API patterns and distinguishes remaining rule-only, runtime, language-safety, and application-context evidence. No claim of universal detection is made.                                                                                                       |
+| Classify findings by severity              | Native scanner findings and located lint/compiler diagnostics are classified high/medium/low. Other failed checks retain their complete diagnostics as check findings. Missing evidence is explicitly incomplete and fails.                                                                       |
+| Archivable reports tied to a version       | Each run clears stale output and records commit, run ID, platform, completion states, and artifact hashes. CI archives the reports for the agreed three-day PoC retention.                                                                                                                        |
 | Prefer one tool across supported languages | Task provides a common CLI over several engines. This is the accepted design. Opengrep, Syft, scc, and Lizard each cover multiple languages or ecosystems.                                                                                                                                        |
 | Dependency CVEs                            | Syft and Grype inventory the repository and gate High/Critical findings; unfixed ones need an explicit acceptance with a reason that expires when a fix ships. Narrow exceptions cover Go code compiled into TypeScript's compiler. Detection depends on package metadata and supported matchers. |
 | Linting                                    | Configured for every example language, shell helpers, Markdown, and GitHub Actions. Python lint and annotations are covered; Python type checking is not implemented.                                                                                                                             |
@@ -63,7 +65,7 @@ detection, a successful run on every platform, or completed central reporting.
 | Reject PRs through a pipeline              | GitHub Actions runs `task verify`. Required GitHub status checks or rulesets are still a repository setting, not supplied merely by mise-action. A central security gate would also need an explicit pipeline query.                                                                              |
 | CLI and CI integration                     | mise and Task supply the CLI; the workflow runs Linux, native Windows, and macOS, and all three pass.                                                                                                                                                                                             |
 | IDE integration                            | `.vscode/tasks.json` exposes `mise exec -- task check` and terminal output. This deliberately simple integration was accepted. Rich editor diagnostics are not required for the PoC.                                                                                                              |
-| Observable results and preferred trends    | Results are in the console, the per-commit artifact, and a SLOC comment on each pull request. Trends need a receiving system, which is not chosen yet.                                                                                                                                            |
+| Observable results and preferred trends    | Console diagnostics, per-commit artifacts, SLOC PR comparisons, and finding-count comparisons against a retained successful baseline. Missing baselines are explicit.                                                                                                                             |
 | Dependency license allowlist               | Grant checks exact SPDX IDs marked OSI-approved, as a placeholder until a legal list exists; that list is a separate project. Findings are advisory and reported as low. Grant is unavailable on native Windows; Linux and macOS run the policy.                                                  |
 | Common code smells and antipatterns        | Strict language linters, compiler diagnostics, clang-tidy, and Lizard provide concrete checks. No separately agreed architectural-boundary rule exists.                                                                                                                                           |
 | Current and additional SLOC                | scc writes current size to `reports/sloc.json`. On each pull request, CI comments the code-line difference per language against the target branch as it stands.                                                                                                                                   |
@@ -78,29 +80,31 @@ detection, a successful run on every platform, or completed central reporting.
 
 ### OWASP and CWE coverage
 
-The agreed demonstration is one representative weakness across every language:
-environment-derived input reaching shell command execution. The checked-in
-rules, unsafe fixtures, and safe alternatives demonstrate the workflow. Broader
-coverage means adding relevant rules and regression fixtures as actual
-application APIs and trust boundaries become known.
+The original demonstration used command injection in every language. The audit
+follow-up expanded it to 41 checked-in rules with unsafe and safe fixtures for
+SQL injection, path traversal, SSRF, unescaped HTML, weak hashes, and disabled
+TLS verification. See [source security rules](sast.md) for exact APIs.
 
-Adding rule metadata or enabling a scanner does not prove complete coverage of
-either list. These lists include categories that cannot be covered by simple
-local patterns alone. The PoC does not need every category implemented before
-the shared toolchain can be evaluated. See [source security rules](sast.md).
+The examples have no production web, authentication, authorization, upload, or
+deployment functionality. Those controls require an application's actual trust
+boundaries and frameworks. The coverage matrix preserves gaps and contextual
+review requirements rather than treating metadata, language safety, or enabling
+a scanner as proof that every OWASP/CWE weakness is detected.
 
 ### PR enforcement
 
-mise-action installs the pinned development tools. The workflow's only `run`
-command is `task verify`; dependency restoration belongs to that task.
-Enforcement additionally requires the three matrix results to be required status
-checks in GitHub. Local hooks are useful feedback and are bypassable.
+mise-action installs the pinned development tools. The workflow runs
+`task verify` for analysis and tests; dependency restoration belongs to that
+task. A separate task computes the available baseline trend. Enforcement
+additionally requires the three matrix results to be required status checks in
+GitHub. Local hooks are useful feedback and are bypassable.
 
-The workflow has no optional `name:` fields, uses read-only repository
-permissions, and runs on pull requests, pushes to `main`, and manual dispatch.
-Action references are pinned to commit SHAs. actionlint runs in `check` and
-`verify`; actions-up updates those pins during maintenance. Neither tool alone
-configures repository branch rules.
+The workflow has no optional `name:` fields; analysis has read-only repository
+and Actions permissions, with PR-comment permission confined to the SLOC job. It
+runs on pull requests, pushes to `main`, and manual dispatch. Action references
+are pinned to commit SHAs. actionlint runs in `check` and `verify`; actions-up
+updates those pins during maintenance. Neither tool alone configures repository
+branch rules.
 
 ### Version identity for reports
 
@@ -128,11 +132,11 @@ The accepted interpretation is to run the same counting policy against the
 baseline and the PR, then compare results. No new service is needed to
 demonstrate that capability.
 
-The baseline still needs to be defined in the task: use the merge base and PR
-head to isolate the PR's changes, or the current target branch and PR head for a
-comparison of those two snapshots. Those are different measurements when the
-target branch has moved. Net SLOC change is also different from added and
-deleted source lines. Name the reported metric rather than treating the terms as
+The baseline is the current target branch, compared with the checked-out PR
+merge snapshot. The current working tree's root and nested ignore policy is
+applied to both snapshots. Those are different measurements when the target
+branch has moved. Net SLOC change is also different from added and deleted
+source lines. Name the reported metric rather than treating the terms as
 interchangeable. Both sides need the same tool version and exclusions, and CI
 needs enough Git history to resolve the chosen baseline.
 
@@ -293,14 +297,15 @@ explicit configuration, so a dropped-in `.gitleaks.toml` cannot silence them.
 and then deleted still fails; it refuses shallow clones, and CI fetches full
 history.
 
-Opengrep uses checked-in taint rules and positive and negative regression
-fixtures. Those deliberately unsafe fixtures are scanned, never executed.
-Application tests stay in normal analysis scope. The helper handles `.mts` and
-`.cts` explicitly because of the pinned engine's discovery limitation. The demo
-does not model arbitrary HTTP sources, shell APIs, wrappers, or cross-file
-flows. Inline suppressions must identify a rule and give a reason;
-`check:suppressions` enforces this for Opengrep and every other tool, including
-markers that Opengrep honors inside string literals.
+Opengrep uses checked-in taint and structural rules and positive and negative
+regression fixtures. Those deliberately unsafe fixtures are scanned, never
+executed. Application tests stay in normal analysis scope. The helper handles
+`.mts` and `.cts` explicitly because of the pinned engine's discovery
+limitation. The rules model selected environment, argument, and HTTP sources and
+API sinks. Arbitrary wrappers, other frameworks, and cross-file flows need
+additional application-specific analysis. Inline suppressions must identify a
+rule and give a reason; `check:suppressions` enforces this for Opengrep and
+every other tool, including markers that Opengrep honors inside string literals.
 
 ## Assumed reporting platforms and actual remaining work
 
@@ -322,24 +327,15 @@ and
 Dependency-Track can be imported through its API. Format compatibility,
 deduplication, and a successful actual import still need to be demonstrated.
 
-Reports are identified by the analyzed commit, which is independent of any
-release version scheme, and CI uploads them as a three-day artifact to
-demonstrate delivery; see [analysis reports](reports.md). Under these
-assumptions, the remaining concrete PoC work is:
+The artifact retention remains three days by explicit PoC decision. Finding
+trends compare with a retained successful run on the target branch and same
+runner; no available baseline is reported as unavailable rather than zero.
+Long-term storage, centralized assessment, organizational rollout, and a final
+company license policy remain deployment decisions outside this template.
 
-1. Choose a receiving system and push the CycloneDX SBOM and findings to it,
-   with configurable endpoints and credentials kept out of repository files.
-   Trends need that system.
-2. If central acceptance is meant to control merging, query the relevant
-   security gate after ingestion and deliberately reconcile it with local
-   scanner exits. An upload by itself neither blocks a PR nor overrides a local
-   failure.
-3. As the last step, configure the three `verify` jobs as required status checks
-   in GitHub; `main` deliberately stays unprotected until then.
-
-Broader OWASP/CWE rules, a precisely defined architecture example, and richer
-editor integrations can be added later where useful. Organizational decisions
-and support for arbitrarily added modules remain outside scope.
+Required verification checks on `main` enforce PR rejection. Changes to the
+workflow and policy still require review; branch protection does not make a
+scanner complete or prove a company's compliance obligations.
 
 ## Validation evidence
 

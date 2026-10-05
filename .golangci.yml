@@ -33,6 +33,11 @@ linters:
     - unparam
     - usetesting
   settings:
+    gosec:
+      config:
+        global:
+          nosec-require-rules: enabled
+          nosec-require-justification: enabled
     errcheck:
       check-type-assertions: true
       check-blank: true
