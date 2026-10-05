@@ -19,11 +19,8 @@ output=reports/new
 mkdir -p "$output"
 status=0
 
-flags=(--no-rewrite-rule-ids --disable-version-check --strict --error
-  --baseline-commit "$base")
-opengrep scan "${flags[@]}" --json-output="$output/sast.json" \
-  --config security/rules --exclude security/tests \
-  --exclude security/linter-tests . || status=1
+SAST_REPORTS=$output bash scripts/check-sast.sh --baseline-commit "$base" ||
+  status=1
 
 if [ -f examples/go/go.mod ]; then
   (cd examples/go && golangci-lint run --config ../../.golangci.yml \

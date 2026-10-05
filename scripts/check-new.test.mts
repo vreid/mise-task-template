@@ -60,7 +60,9 @@ async function report(name: string): Promise<unknown> {
 async function setUp(): Promise<void> {
   const copied = [
     "scripts/check-new.sh",
+    "scripts/check-sast.sh",
     "security/rules/python",
+    "security/rules/typescript",
     "security/betterleaks.toml",
     ".golangci.yml",
   ];
@@ -112,6 +114,22 @@ await test("rejects a new Opengrep finding and reports only that one", async () 
     text(at(result, "path")),
   );
   assert.deepEqual(paths, ["app/added.py"]);
+});
+
+await test("rejects a new finding in a TypeScript module", async () => {
+  // Opengrep's directory scan skips .mts; check-sast.sh passes them explicitly.
+  // A namespace import: docs/sast.md lists the import forms the rules miss.
+  git("switch", "--quiet", "--force-create", "module", "feature");
+  await commit({
+    "app/added.mts":
+      'import * as childProcess from "node:child_process";\n\nchildProcess.exec(process.env["ADDED"] ?? "");\n',
+  });
+  const { status, output } = checkNew();
+  assert.equal(status, 1, output);
+  const paths = list(at(await report("sast-modules.json"), "results")).map(
+    (result) => text(at(result, "path")),
+  );
+  assert.deepEqual(paths, ["app/added.mts"]);
 });
 
 await test("rejects a new golangci-lint finding", async () => {

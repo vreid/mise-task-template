@@ -2,12 +2,15 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
-flags=(--no-rewrite-rule-ids --disable-version-check --strict --error)
+# Extra arguments reach both scans; check:new passes --baseline-commit and
+# SAST_REPORTS=reports/new.
+flags=(--no-rewrite-rule-ids --disable-version-check --strict --error "$@")
+output=${SAST_REPORTS:-reports}
 
 # test:sast checks these deliberately unsafe fixtures separately.
-mkdir -p reports
+mkdir -p "$output"
 status=0
-opengrep scan "${flags[@]}" --json-output=reports/sast.json \
+opengrep scan "${flags[@]}" --json-output="$output/sast.json" \
   --config security/rules --exclude security/tests \
   --exclude security/linter-tests . || status=$?
 
@@ -26,11 +29,11 @@ while IFS= read -r -d '' file; do
 done <"$file_list"
 
 if [ "${#modules[@]}" -gt 0 ]; then
-  opengrep scan "${flags[@]}" --json-output=reports/sast-modules.json \
+  opengrep scan "${flags[@]}" --json-output="$output/sast-modules.json" \
     --config security/rules/typescript \
     --scan-unknown-extensions "${modules[@]}" || status=$?
 else
-  printf '%s\n' '{"results": [], "errors": []}' >reports/sast-modules.json
+  printf '%s\n' '{"results": [], "errors": []}' >"$output/sast-modules.json"
 fi
 
 exit "$status"
