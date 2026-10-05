@@ -119,10 +119,12 @@ same mise installation.
 ASan also enables stack-use-after-scope and always-on stack-use-after-return
 instrumentation. UBSan uses the `undefined` group. Recovery is disabled, so a
 finding terminates the test and fails the task. Task enables UBSan stack traces.
-On Windows, the test executables load Clang's dynamic sanitizer runtime, so the
-test helper adds the compiler's runtime directory to `PATH`. Only executed code
-is covered; these checks complement static analysis rather than prove memory
-safety. See [ASan](https://clang.llvm.org/docs/AddressSanitizer.html) and
+LeakSanitizer reports leaks on Linux by default and on macOS because the test
+helper enables it there; Windows has no LeakSanitizer. On Windows, the test
+executables load Clang's dynamic sanitizer runtime, so the test helper adds the
+compiler's runtime directory to `PATH`. Only executed code is covered; these
+checks complement static analysis rather than prove memory safety. See
+[ASan](https://clang.llvm.org/docs/AddressSanitizer.html) and
 [UBSan](https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html).
 
 MSan is deferred. It does not support this macOS environment, must run

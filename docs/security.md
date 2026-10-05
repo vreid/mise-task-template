@@ -116,14 +116,17 @@ the current SPDX list and regenerates it; review and commit the resulting diff.
 `task maintenance` also refreshes it. Policy refresh errors fail the task
 without replacing the existing policy with an empty or invalid list.
 
-The [Open Source Definition](https://opensource.org/osd) forbids discrimination
-against businesses or groups. An annual revenue of roughly 800 million therefore
-does not itself exclude a company from using OSI-approved software. License
-obligations still apply, including notices, source availability, and copyleft
-requirements where relevant. An allowed finding establishes allowlist membership
-for a detected license, not compliance with every obligation or compatibility of
-licenses in a combined product. An advisory task's successful exit does not mean
-that all licenses were allowed.
+The allowlist is a placeholder until an organization defines which license types
+it accepts; choosing that list is a separate project with legal review, not a
+decision this template makes. The
+[Open Source Definition](https://opensource.org/osd) forbids discrimination
+against businesses or groups, so company size does not by itself exclude anyone
+from using OSI-approved software. License obligations still apply, including
+notices, source availability, and copyleft requirements where relevant. An
+allowed finding establishes allowlist membership for a detected license, not
+compliance with every obligation or compatibility of licenses in a combined
+product. An advisory task's successful exit does not mean that all licenses were
+allowed.
 
 [Grant](https://oss.anchore.com/docs/guides/license/policies/) currently checks
 every detected license, including every alternative in an SPDX `OR` expression.

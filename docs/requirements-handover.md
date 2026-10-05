@@ -53,8 +53,8 @@ detection, a successful run on every platform, or completed central reporting.
 | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Scan source for vulnerabilities            | Opengrep command-injection rules exist for all seven languages. Compiler and language security checks add other signals. The SAST rules deliberately cover a narrow example.                                                                                                                      |
 | OWASP Top 10 and CWE Top 25                | Command injection (CWE-78/77, A05) is tested in all seven languages, including 14 known bypass variants. The [coverage matrix](owasp-cwe-coverage.md) maps every category to a tested fixture, an untested rule, language safety, or a gap, and names what static analysis cannot detect.         |
-| Classify findings by severity              | Grype has vulnerability severities. Opengrep rules carry `ERROR` severity and `HIGH` impact metadata. Cross-tool normalization into a shared high/medium/low model remains report-integration work.                                                                                               |
-| Archivable reports tied to a version       | `check` writes CycloneDX and SPDX SBOMs, a complexity CSV, and the suppression register to `reports/`, with a version label. Another system is assumed to ingest them; upload, retention, and a full manifest are missing.                                                                        |
+| Classify findings by severity              | `reports/findings.json` classifies every reported finding high, medium, or low. Tools with a native severity keep it; everything else is low. Accepted findings keep their recorded reason.                                                                                                       |
+| Archivable reports tied to a version       | `check` and `verify` write SBOMs, findings, metrics, and the suppression register to `reports/`, identified by the analyzed commit in `manifest.json`. CI uploads them as a three-day artifact; a long-term receiving system is not chosen yet.                                                   |
 | Prefer one tool across supported languages | Task provides a common CLI over several engines. This is the accepted design. Opengrep, Syft, scc, and Lizard each cover multiple languages or ecosystems.                                                                                                                                        |
 | Dependency CVEs                            | Syft and Grype inventory the repository and gate High/Critical findings; unfixed ones need an explicit acceptance with a reason that expires when a fix ships. Narrow exceptions cover Go code compiled into TypeScript's compiler. Detection depends on package metadata and supported matchers. |
 | Linting                                    | Configured for every example language, shell helpers, Markdown, and GitHub Actions. Python lint and annotations are covered; Python type checking is not implemented.                                                                                                                             |
@@ -63,15 +63,15 @@ detection, a successful run on every platform, or completed central reporting.
 | Reject PRs through a pipeline              | GitHub Actions runs `task verify`. Required GitHub status checks or rulesets are still a repository setting, not supplied merely by mise-action. A central security gate would also need an explicit pipeline query.                                                                              |
 | CLI and CI integration                     | mise and Task supply the CLI; the workflow runs Linux, native Windows, and macOS, and all three pass.                                                                                                                                                                                             |
 | IDE integration                            | `.vscode/tasks.json` exposes `mise exec -- task check` and terminal output. This deliberately simple integration was accepted. Rich editor diagnostics are not required for the PoC.                                                                                                              |
-| Observable results and preferred trends    | Console results exist. Dependency-Track and SecObserve are the assumed central interfaces. Automated ingestion and any missing metrics history still need implementation.                                                                                                                         |
-| Dependency license allowlist               | Grant checks exact SPDX IDs marked OSI-approved. Findings are intentionally advisory for now. Grant is unavailable on native Windows; Linux and macOS run the policy.                                                                                                                             |
+| Observable results and preferred trends    | Results are in the console, the per-commit artifact, and a SLOC comment on each pull request. Trends need a receiving system, which is not chosen yet.                                                                                                                                            |
+| Dependency license allowlist               | Grant checks exact SPDX IDs marked OSI-approved, as a placeholder until a legal list exists; that list is a separate project. Findings are advisory and reported as low. Grant is unavailable on native Windows; Linux and macOS run the policy.                                                  |
 | Common code smells and antipatterns        | Strict language linters, compiler diagnostics, clang-tidy, and Lizard provide concrete checks. No separately agreed architectural-boundary rule exists.                                                                                                                                           |
-| Current and additional SLOC                | scc reports current repository and per-file size. Comparing a baseline against the PR is agreed in principle but not implemented.                                                                                                                                                                 |
+| Current and additional SLOC                | scc writes current size to `reports/sloc.json`. On each pull request, CI comments the code-line difference per language against the target branch as it stands.                                                                                                                                   |
 | Prefer open-source tools                   | The selected analysis tools are open source. Tool choice and dependency-license compliance are separate questions.                                                                                                                                                                                |
 | Secret scanning                            | Betterleaks scans the working tree and generated reports and ignores inline allow comments; `verify` also scans history reachable from `HEAD`. Detection scope still follows its supported formats and exclusions.                                                                                |
 | Cyclomatic complexity and other metrics    | Lizard writes every function's CCN, NLOC, and parameters to `reports/complexity.csv`, then enforces the limits. scc reports size and approximate file-level complexity on the console.                                                                                                            |
 | Auditable comment-based exceptions         | `check:suppressions` requires a specific rule and a reason for every inline suppression of every tool and exports the register, with Git attribution, to `reports/suppressions.json`. Configuration exemptions are reviewed through Git only.                                                     |
-| Preferred memory-leak detection            | clang-tidy includes static leak checks; C/C++ tests use ASan and UBSan. Runtime leak detection is platform-dependent. MSan and Valgrind remain deferred.                                                                                                                                          |
+| Preferred memory-leak detection            | clang-tidy includes static leak checks; C/C++ tests use ASan and UBSan, with LeakSanitizer on Linux and macOS. Windows has no LeakSanitizer. MSan and Valgrind remain deferred.                                                                                                                   |
 | Organizational scope and policy decisions  | Explicitly outside this repository's PoC scope. Do not report their absence as missing implementation in this template.                                                                                                                                                                           |
 
 ## Decisions about the ambiguous requirements
@@ -109,13 +109,12 @@ GitVersion with a tag plus commits since the tag, or just the tag. A commit SHA
 is useful for exact source identity, but the requirement does not settle the
 human-facing version convention.
 
-The agreed direction is to accept an externally supplied version label, whatever
-scheme supplies it, and retain the actual analyzed commit SHA separately. The
-SBOM takes its label from `REPORT_VERSION` when set and from
-`git describe --tags --always --dirty` otherwise, and the suppression register
-records the full analyzed commit. A manifest tying every report to commit,
-tools, and platform is not implemented. Conventional Commit messages are
-implemented; they do not choose a release-version scheme.
+Reports are identified by the analyzed commit, which is independent of any
+version scheme: `reports/manifest.json` records it with a dirty flag, timestamp,
+and platform, and the SBOM uses it as its version unless release tooling
+supplies `REPORT_VERSION`. The tools are pinned by `mise.lock` at that commit.
+Conventional Commit messages are implemented; they do not choose a
+release-version scheme.
 
 A proposed report record should also identify the repository, branch or PR,
 baseline when relevant, tool versions, timestamp, and platform. Be explicit
@@ -248,13 +247,14 @@ CycloneDX output contains no absolute host paths. Tools installed by mise
 outside the repository and unsupported or undetected packages are outside that
 inventory. Metadata enrichment may contact upstream registries.
 
-The user selected **all OSI-approved licenses**, including GPL and AGPL, rather
-than a permissive-only subset. Company revenue alone was not accepted as a
-reason to exclude an OSI-approved license: the
+The allowlist currently contains **all OSI-approved licenses**, including GPL
+and AGPL, as a placeholder. No legal list of accepted license types exists yet;
+defining one is a separate project with legal review, outside this PoC. The
 [Open Source Definition](https://opensource.org/osd) prohibits discrimination
-against business use. This is an allowlist decision, not a conclusion that every
-use satisfies notices, source-sharing, copyleft, or compatibility obligations.
-Final company policy remains outside the PoC.
+against business use, so company size alone is no reason to exclude a license.
+This is an allowlist mechanism, not a conclusion that every use satisfies
+notices, source-sharing, copyleft, or compatibility obligations. License
+findings stay advisory until that list exists.
 
 Grant checks exact SPDX IDs from the maintained OSI list. Unknown and missing
 licenses remain findings; there are no blanket package exemptions. License
@@ -322,29 +322,20 @@ and
 Dependency-Track can be imported through its API. Format compatibility,
 deduplication, and a successful actual import still need to be demonstrated.
 
-Under these assumptions, the remaining concrete PoC work is:
+Reports are identified by the analyzed commit, which is independent of any
+release version scheme, and CI uploads them as a three-day artifact to
+demonstrate delivery; see [analysis reports](reports.md). Under these
+assumptions, the remaining concrete PoC work is:
 
-1. Extend the durable reports in `reports/` (SBOMs, complexity, suppressions) to
-   lint, SAST, secret, license, and vulnerability findings, still written even
-   when a scanner reports findings and kept out of their own scan inputs.
-2. Add a manifest that associates every report with the external version label,
-   the exact analyzed SHA, tool versions, and platform. The SBOM label and the
-   register's revision cover only part of this.
-3. Push the existing CycloneDX SBOM to Dependency-Track and supported finding
-   formats to SecObserve. Provide configurable endpoints and credentials without
-   putting secrets into repository files.
-4. Keep explicit artifact retention for reports that the platforms do not
-   retain, including any lint, metrics, or suppression evidence needed for the
-   requirement. Uploading security findings alone does not archive every tool's
-   output.
-5. Inline acceptance with a recorded reason is enforced and registered. If
-   central acceptance is meant to control merging, query the relevant security
-   gate after ingestion and deliberately reconcile it with local scanner exits.
-   An upload by itself neither blocks a PR nor overrides a local failure.
-6. Add baseline-versus-PR SLOC reporting with a named comparison policy. Reuse
-   the existing counters and exclusions instead of building a metrics service.
-7. Configure the three `verify` jobs as required status checks in GitHub. All
-   three now pass; `main` currently has no branch protection or rulesets.
+1. Choose a receiving system and push the CycloneDX SBOM and findings to it,
+   with configurable endpoints and credentials kept out of repository files.
+   Trends need that system.
+2. If central acceptance is meant to control merging, query the relevant
+   security gate after ingestion and deliberately reconcile it with local
+   scanner exits. An upload by itself neither blocks a PR nor overrides a local
+   failure.
+3. As the last step, configure the three `verify` jobs as required status checks
+   in GitHub; `main` deliberately stays unprotected until then.
 
 Broader OWASP/CWE rules, a precisely defined architecture example, and richer
 editor integrations can be added later where useful. Organizational decisions

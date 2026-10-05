@@ -58,11 +58,12 @@ match any name.
 The C# and C/C++ argument sources match the conventional names `args` and
 `argv`, so code using other names for them is not covered.
 
-Findings have Opengrep severity `ERROR`, impact `HIGH`, and CWE/OWASP metadata.
-Messages explain the intended remediation: select a fixed executable and pass
-input as separate arguments without a shell. The safe fixtures use a fixed
-`printf` executable and a fixed format string, keeping input in a data argument.
-This does not make arbitrary executables, options, or format strings safe.
+Findings have Opengrep severity `HIGH`, impact `HIGH`, and CWE/OWASP metadata,
+and are written to `reports/sast.json`. Messages explain the intended
+remediation: select a fixed executable and pass input as separate arguments
+without a shell. The safe fixtures use a fixed `printf` executable and a fixed
+format string, keeping input in a data argument. This does not make arbitrary
+executables, options, or format strings safe.
 
 The fixtures include the 14 variants an adversarial review used to bypass the
 earlier, environment-only rules; all are now caught. HTTP input, files, stdin,
