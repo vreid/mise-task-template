@@ -5,9 +5,12 @@ cd "$(dirname "$0")/.."
 mkdir -p reports
 
 # Release tooling can supply its own name and version label. Otherwise use the
-# checkout directory and describe the analyzed commit, marking local changes.
+# checkout directory and the analyzed commit, marking uncommitted changes.
 name=${REPORT_NAME:-$(basename "$(git rev-parse --show-toplevel)")}
-version=${REPORT_VERSION:-$(git describe --tags --always --dirty)}
+version=${REPORT_VERSION:-$(git rev-parse HEAD)}
+if [ -z "${REPORT_VERSION:-}" ] && [ -n "$(git status --porcelain)" ]; then
+  version="$version-dirty"
+fi
 
 # One scan writes every format, so the reported inventory is the gated one.
 # Relative output paths avoid MSYS path conversion on native Windows.

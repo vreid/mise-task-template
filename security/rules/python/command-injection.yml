@@ -2,7 +2,7 @@ rules:
   - id: poc.python.input-to-shell
     languages: [python]
     mode: taint
-    severity: ERROR
+    severity: HIGH
     message: >-
       Environment or command-line input reaches a shell command (CWE-78). Use
       subprocess.run with a fixed executable, an argument list, and shell=False

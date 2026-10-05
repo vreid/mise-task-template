@@ -5,7 +5,9 @@ cd "$(dirname "$0")/.."
 flags=(--no-rewrite-rule-ids --disable-version-check --strict --error)
 
 # test:sast checks these deliberately unsafe fixtures separately.
-opengrep scan "${flags[@]}" --config security/rules --exclude security/tests \
+mkdir -p reports
+opengrep scan "${flags[@]}" --json-output=reports/sast.json \
+  --config security/rules --exclude security/tests \
   --exclude security/linter-tests .
 
 # Opengrep 1.30 directory discovery skips .mts/.cts. Supply these explicitly to
@@ -23,6 +25,7 @@ while IFS= read -r -d '' file; do
 done <"$file_list"
 
 if [ "${#modules[@]}" -gt 0 ]; then
-  opengrep scan "${flags[@]}" --config security/rules/typescript \
+  opengrep scan "${flags[@]}" --json-output=reports/sast-modules.json \
+    --config security/rules/typescript \
     --scan-unknown-extensions "${modules[@]}"
 fi

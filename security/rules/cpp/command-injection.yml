@@ -2,7 +2,7 @@ rules:
   - id: poc.cpp.input-to-shell
     languages: [cpp]
     mode: taint
-    severity: ERROR
+    severity: HIGH
     message: >-
       Environment or command-line input reaches a shell command (CWE-78). Use
       execv with a fixed executable and separate arguments instead.

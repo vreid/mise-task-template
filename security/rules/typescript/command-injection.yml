@@ -2,7 +2,7 @@ rules:
   - id: poc.typescript.input-to-shell
     languages: [typescript]
     mode: taint
-    severity: ERROR
+    severity: HIGH
     message: >-
       Environment or command-line input reaches a shell command (CWE-78). Use
       execFile/execFileSync or spawn without a shell, with a fixed executable

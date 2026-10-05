@@ -2,7 +2,7 @@ rules:
   - id: poc.csharp.input-to-shell
     languages: [csharp]
     mode: taint
-    severity: ERROR
+    severity: HIGH
     message: >-
       Environment or command-line input reaches a shell command (CWE-78). Use
       ProcessStartInfo with a fixed executable, ArgumentList, and
