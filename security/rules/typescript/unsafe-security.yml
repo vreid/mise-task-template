@@ -1,6 +1,4 @@
-{
-  "rules":
-    [
+{ "rules": [
       {
         "id": "poc.typescript.weak-hash",
         "languages": ["typescript"],
@@ -15,10 +13,79 @@
             "cwe": ["CWE-327"],
             "owasp": ["A04:2025"],
           },
-        "pattern-either":
+        # Default and awaited dynamic imports do not resolve; they are matched
+        # through their import statements.
+        "patterns":
           [
-            { "pattern": 'crypto.createHash("md5")' },
-            { "pattern": 'crypto.createHash("sha1")' },
+            {
+              "pattern-either":
+                [
+                  {
+                    "patterns":
+                      [
+                        { "pattern": "$MODULE.createHash($ALGORITHM, ...)" },
+                        {
+                          "metavariable-regex":
+                            {
+                              "metavariable": "$MODULE",
+                              "regex": "^(?:node:)?crypto$",
+                            },
+                        },
+                      ],
+                  },
+                  {
+                    "patterns":
+                      [
+                        {
+                          "pattern-either":
+                            [
+                              {
+                                "pattern-inside":
+                                  "import $LIBRARY from \"$MODULE\";\n...\n",
+                              },
+                              {
+                                "pattern-inside":
+                                  "$LIBRARY = await import(\"$MODULE\");\n...\n",
+                              },
+                            ],
+                        },
+                        { "pattern": "$LIBRARY.createHash($ALGORITHM, ...)" },
+                        {
+                          "metavariable-regex":
+                            {
+                              "metavariable": "$MODULE",
+                              "regex": "^(?:node:)?crypto$",
+                            },
+                        },
+                      ],
+                  },
+                  {
+                    "patterns":
+                      [
+                        {
+                          "pattern-inside":
+                            "const {..., createHash, ...} = await
+                            import(\"$MODULE\");\n...\n",
+                        },
+                        { "pattern": "createHash($ALGORITHM, ...)" },
+                        {
+                          "metavariable-regex":
+                            {
+                              "metavariable": "$MODULE",
+                              "regex": "^(?:node:)?crypto$",
+                            },
+                        },
+                      ],
+                  },
+                ],
+            },
+            {
+              "metavariable-regex":
+                {
+                  "metavariable": "$ALGORITHM",
+                  "regex": '^(?i)["''`](?:rsa-)?(?:md4|md5|sha-?1)["''`]$',
+                },
+            },
           ],
       },
       {
@@ -36,5 +103,4 @@
         "pattern-either":
           [{ "pattern": "({..., rejectUnauthorized: false, ...})" }],
       },
-    ],
-}
+    ] }
