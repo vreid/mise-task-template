@@ -11,6 +11,9 @@ tasks:
       SBOMs, complexity metrics, and the suppression register are written to reports/.
       Use task verify to enforce formatting or task fix to apply it.
     cmds:
+      # Runs last, even when a check fails, so failed runs keep their findings.
+      - defer: { task: findings }
+      - task: manifest
       - task: fmt
       - task: lint
       - task: metrics
@@ -58,8 +61,20 @@ tasks:
   scc:
     desc: Report file sizes and estimated complexity, highest first per language
     cmds:
+      - mkdir -p reports
       - scc --no-config --no-cocomo --no-size --by-file --wide --sort complexity
-        --ci .
+        --ci --format-multi "wide:stdout,json:reports/sloc.json" .
+
+  sloc-diff:
+    desc:
+      Compare code lines per language with BASE (default origin/main); write
+      reports/sloc-diff.md
+    vars:
+      BASE: '{{.BASE | default "origin/main"}}'
+    env:
+      BASE_REF: "{{.BASE}}"
+    cmds:
+      - node scripts/sloc-diff.mts "$BASE_REF"
 
   lizard:
     desc: Require strict function complexity, size, and parameter limits
@@ -121,8 +136,10 @@ tasks:
     # fingerprint with a reason in .betterleaksignore instead. The explicit
     # config keeps a dropped-in .gitleaks.toml from reconfiguring the scan.
     cmds:
+      - mkdir -p reports
       - betterleaks dir . --config security/betterleaks.toml --redact=100
-        --validation=false --no-banner --ignore-gitleaks-allow
+        --validation=false --no-banner --ignore-gitleaks-allow --report-format
+        json --report-path reports/secrets.json
 
   sast:
     desc: Test the Opengrep rules and reject matching source vulnerabilities
@@ -144,9 +161,21 @@ tasks:
           A shallow clone hides older commits. Run git fetch --unshallow, or
           check out with fetch-depth 0.
     cmds:
+      - mkdir -p reports
       - betterleaks git . --log-opts="$HISTORY_RANGE" --config
         security/betterleaks.toml --redact=100 --validation=false --no-banner
-        --ignore-gitleaks-allow
+        --ignore-gitleaks-allow --report-format json --report-path
+        reports/secrets-history.json
+
+  manifest:
+    desc: Record the analyzed commit and platform in reports/manifest.json
+    cmds:
+      - bash scripts/report-manifest.sh
+
+  findings:
+    desc: Classify all reported findings as high, medium, or low
+    cmds:
+      - node scripts/findings.mts
 
   suppressions:
     desc:

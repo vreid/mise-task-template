@@ -4,6 +4,9 @@ tasks:
   default:
     desc: Restore dependencies, build, check, and test with strict formatting
     cmds:
+      # Runs last, even when a check fails, so failed runs keep their findings.
+      - defer: { task: ":check:findings" }
+      - task: :check:manifest
       - task: :deps
       - task: :build
       - task: lint
