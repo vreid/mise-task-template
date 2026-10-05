@@ -40,3 +40,6 @@ uv = "latest"
 # Use the complete upstream LLVM distribution, including Clang and Clang++.
 # Exact versions are recorded in mise.lock.
 "github:llvm/llvm-project" = { version = "latest", matching = ".tar.zst" }
+# Go language server for editors; the VS Code Go extension would otherwise
+# install an unpinned copy.
+"go:golang.org/x/tools/gopls" = "latest"

@@ -13,6 +13,7 @@ tasks:
       - dotnet --version
       - go version
       - golangci-lint version
+      - gopls version
       - rustc --version
       - cargo --version
       - cargo clippy --version

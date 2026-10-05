@@ -12,3 +12,10 @@ tasks:
     desc: Install or refresh Git hooks
     cmds:
       - pnpm exec lefthook install
+
+  ide:
+    desc: Write build/compile_commands.json so clangd uses the C/C++ task flags
+    cmds:
+      - rm -f build/compile_commands.json
+      - bash scripts/c-cpp.sh compdb c
+      - bash scripts/c-cpp.sh compdb cpp
