@@ -1,11 +1,12 @@
 rules:
-  - id: poc.go.environment-to-shell
+  - id: poc.go.input-to-shell
     languages: [go]
     mode: taint
     severity: ERROR
     message: >-
-      Environment input reaches a shell command (CWE-78). Use exec.Command with
-      a fixed executable and separate arguments instead of sh -c.
+      Environment or command-line input reaches a shell command (CWE-78). Use
+      exec.Command with a fixed executable and separate arguments instead of a
+      shell.
     metadata:
       category: security
       confidence: HIGH
@@ -13,10 +14,16 @@ rules:
       cwe: ["CWE-78: OS Command Injection"]
       owasp: ["A05:2025 - Injection"]
     pattern-sources:
-      - pattern: os.Getenv(...)
+      - pattern-either:
+          - pattern: os.Getenv(...)
+          - pattern: os.Args
     pattern-sinks:
       - patterns:
           - pattern-either:
-              - pattern: exec.Command("/bin/sh", "-c", $COMMAND, ...)
-              - pattern: exec.Command("sh", "-c", $COMMAND, ...)
+              - pattern: exec.Command($SHELL, $FLAG, $COMMAND, ...)
+              - pattern:
+                  exec.CommandContext($CONTEXT, $SHELL, $FLAG, $COMMAND, ...)
+          - metavariable-regex:
+              metavariable: $SHELL
+              regex: '^(?i)["''](?:/(?:usr/)?bin/)?(?:sh|bash|dash|zsh|ksh|cmd|cmd\.exe|powershell|powershell\.exe|pwsh)["'']$'
           - focus-metavariable: $COMMAND

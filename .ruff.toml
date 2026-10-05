@@ -32,7 +32,12 @@ convention = "google"
 
 [lint.per-file-ignores]
 # Deliberately unsafe subprocess examples and native ruleid/ok test comments.
-"security/tests/python/command-injection.py" = ["ERA001", "S602", "S603"]
+"security/tests/python/command-injection.py" = [
+  "ERA001",
+  "S602",
+  "S603",
+  "S605",
+]
 
 [format]
 # Oxfmt owns Markdown; Ruff formats Python code and Python docstrings.

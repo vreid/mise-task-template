@@ -1,12 +1,12 @@
 rules:
-  - id: poc.typescript.environment-to-shell
+  - id: poc.typescript.input-to-shell
     languages: [typescript]
     mode: taint
     severity: ERROR
     message: >-
-      Environment input reaches a shell command (CWE-78). Use
-      execFile/execFileSync with a fixed executable and separate arguments
-      instead.
+      Environment or command-line input reaches a shell command (CWE-78). Use
+      execFile/execFileSync or spawn without a shell, with a fixed executable
+      and separate arguments.
     metadata:
       category: security
       confidence: HIGH
@@ -17,12 +17,33 @@ rules:
       - pattern-either:
           - pattern: process.env[$KEY]
           - pattern: process.env.$KEY
+          - pattern: process.argv
     pattern-sinks:
       - patterns:
           - pattern-either:
               - pattern: $PROCESS.exec($COMMAND, ...)
               - pattern: $PROCESS.execSync($COMMAND, ...)
+              - pattern: "$PROCESS.spawn($COMMAND, {..., shell: true, ...})"
+              - pattern: "$PROCESS.spawnSync($COMMAND, {..., shell: true, ...})"
+              - pattern:
+                  "$PROCESS.spawn($COMMAND, $ARGS, {..., shell: true, ...})"
+              - pattern:
+                  "$PROCESS.spawnSync($COMMAND, $ARGS, {..., shell: true, ...})"
           - metavariable-regex:
               metavariable: $PROCESS
               regex: ^(?:node:)?child_process$
+          - focus-metavariable: $COMMAND
+      - patterns:
+          - pattern-either:
+              - pattern: $PROCESS.spawn($SHELL, [..., $COMMAND, ...], ...)
+              - pattern: $PROCESS.spawnSync($SHELL, [..., $COMMAND, ...], ...)
+              - pattern: $PROCESS.execFile($SHELL, [..., $COMMAND, ...], ...)
+              - pattern:
+                  $PROCESS.execFileSync($SHELL, [..., $COMMAND, ...], ...)
+          - metavariable-regex:
+              metavariable: $PROCESS
+              regex: ^(?:node:)?child_process$
+          - metavariable-regex:
+              metavariable: $SHELL
+              regex: '^(?i)["''](?:/(?:usr/)?bin/)?(?:sh|bash|dash|zsh|ksh|cmd|cmd\.exe|powershell|powershell\.exe|pwsh)["'']$'
           - focus-metavariable: $COMMAND

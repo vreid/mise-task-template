@@ -1,11 +1,11 @@
 rules:
-  - id: poc.cpp.environment-to-shell
+  - id: poc.cpp.input-to-shell
     languages: [cpp]
     mode: taint
     severity: ERROR
     message: >-
-      Environment input reaches a shell command (CWE-78). Use execv with a fixed
-      executable and separate arguments instead.
+      Environment or command-line input reaches a shell command (CWE-78). Use
+      execv with a fixed executable and separate arguments instead.
     metadata:
       category: security
       confidence: HIGH
@@ -16,10 +16,20 @@ rules:
       - pattern-either:
           - pattern: getenv(...)
           - pattern: std::getenv(...)
+          # The conventional name of main's argument vector.
+          - pattern: argv[$INDEX]
     pattern-sinks:
       - patterns:
           - pattern-either:
               - pattern: system($COMMAND)
               - pattern: std::system($COMMAND)
               - pattern: popen($COMMAND, ...)
+          - focus-metavariable: $COMMAND
+      - patterns:
+          - pattern-either:
+              - pattern: execl($SHELL, $NAME, $FLAG, $COMMAND, ...)
+              - pattern: execlp($SHELL, $NAME, $FLAG, $COMMAND, ...)
+          - metavariable-regex:
+              metavariable: $SHELL
+              regex: '^(?i)["''](?:/(?:usr/)?bin/)?(?:sh|bash|dash|zsh|ksh|cmd|cmd\.exe|powershell|powershell\.exe|pwsh)["'']$'
           - focus-metavariable: $COMMAND

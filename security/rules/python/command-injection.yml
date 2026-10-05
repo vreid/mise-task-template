@@ -1,11 +1,12 @@
 rules:
-  - id: poc.python.environment-to-shell
+  - id: poc.python.input-to-shell
     languages: [python]
     mode: taint
     severity: ERROR
     message: >-
-      Environment input reaches a shell command (CWE-78). Use subprocess.run
-      with a fixed executable, an argument list, and shell=False instead.
+      Environment or command-line input reaches a shell command (CWE-78). Use
+      subprocess.run with a fixed executable, an argument list, and shell=False
+      instead.
     metadata:
       category: security
       confidence: HIGH
@@ -17,9 +18,11 @@ rules:
           - pattern: os.getenv(...)
           - pattern: os.environ[$KEY]
           - pattern: os.environ.get(...)
+          - pattern: sys.argv
     pattern-sinks:
       - patterns:
           - pattern-either:
               - pattern: os.system($COMMAND)
-              - pattern: subprocess.run($COMMAND, ..., shell=True, ...)
+              - pattern: os.popen($COMMAND, ...)
+              - pattern: subprocess.$FUNCTION($COMMAND, ..., shell=True, ...)
           - focus-metavariable: $COMMAND

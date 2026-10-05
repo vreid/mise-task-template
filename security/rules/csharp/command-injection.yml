@@ -1,11 +1,12 @@
 rules:
-  - id: poc.csharp.environment-to-shell
+  - id: poc.csharp.input-to-shell
     languages: [csharp]
     mode: taint
     severity: ERROR
     message: >-
-      Environment input reaches a shell command (CWE-78). Use ProcessStartInfo
-      with a fixed executable, ArgumentList, and UseShellExecute=false instead.
+      Environment or command-line input reaches a shell command (CWE-78). Use
+      ProcessStartInfo with a fixed executable, ArgumentList, and
+      UseShellExecute=false instead.
     metadata:
       category: security
       confidence: HIGH
@@ -13,10 +14,18 @@ rules:
       cwe: ["CWE-78: OS Command Injection"]
       owasp: ["A05:2025 - Injection"]
     pattern-sources:
-      - pattern: System.Environment.GetEnvironmentVariable(...)
+      - pattern-either:
+          - pattern: System.Environment.GetEnvironmentVariable(...)
+          - pattern: System.Environment.GetCommandLineArgs()
+          # The conventional name of Main's and top-level statements' arguments.
+          - pattern: args
     pattern-sinks:
       - patterns:
           - pattern-either:
-              - pattern: System.Diagnostics.Process.Start("/bin/sh", $COMMAND)
-              - pattern: System.Diagnostics.Process.Start("sh", $COMMAND)
+              - pattern: System.Diagnostics.Process.Start($SHELL, $COMMAND)
+              - pattern:
+                  new System.Diagnostics.ProcessStartInfo($SHELL, $COMMAND)
+          - metavariable-regex:
+              metavariable: $SHELL
+              regex: '^(?i)["''](?:/(?:usr/)?bin/)?(?:sh|bash|dash|zsh|ksh|cmd|cmd\.exe|powershell|powershell\.exe|pwsh)["'']$'
           - focus-metavariable: $COMMAND

@@ -1,11 +1,11 @@
 rules:
-  - id: poc.rust.environment-to-shell
+  - id: poc.rust.input-to-shell
     languages: [rust]
     mode: taint
     severity: ERROR
     message: >-
-      Environment input reaches a shell command (CWE-78). Use Command with a
-      fixed executable and separate arguments instead of sh -c.
+      Environment or command-line input reaches a shell command (CWE-78). Use
+      Command with a fixed executable and separate arguments instead of a shell.
     metadata:
       category: security
       confidence: HIGH
@@ -13,10 +13,20 @@ rules:
       cwe: ["CWE-78: OS Command Injection"]
       owasp: ["A05:2025 - Injection"]
     pattern-sources:
-      - pattern: std::env::var(...)
+      - pattern-either:
+          - pattern: std::env::var(...)
+          - pattern: std::env::var_os(...)
+          - pattern: std::env::args()
+          - pattern: std::env::args_os()
     pattern-sinks:
       - patterns:
           - pattern-either:
-              - pattern: std::process::Command::new("/bin/sh").arg("-c").arg($COMMAND)
-              - pattern: std::process::Command::new("sh").arg("-c").arg($COMMAND)
+              - pattern: std::process::Command::new($SHELL).arg($FLAG).arg($COMMAND)
+              - pattern:
+                  std::process::Command::new($SHELL).args([..., $COMMAND, ...])
+              - pattern:
+                  std::process::Command::new($SHELL).args(&[..., $COMMAND, ...])
+          - metavariable-regex:
+              metavariable: $SHELL
+              regex: '^(?i)["''](?:/(?:usr/)?bin/)?(?:sh|bash|dash|zsh|ksh|cmd|cmd\.exe|powershell|powershell\.exe|pwsh)["'']$'
           - focus-metavariable: $COMMAND
