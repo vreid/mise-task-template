@@ -47,3 +47,68 @@ rules:
               metavariable: $SHELL
               regex: '^(?i)["''](?:/(?:usr/)?bin/)?(?:sh|bash|dash|zsh|ksh|cmd|cmd\.exe|powershell|powershell\.exe|pwsh)["'']$'
           - focus-metavariable: $COMMAND
+      # Opengrep resolves namespace, named, and require imports to the module
+      # name above, but not default imports or awaited dynamic imports.
+      - patterns:
+          - pattern-either:
+              - pattern-inside: |
+                  import $PROCESS from "$MODULE";
+                  ...
+              - pattern-inside: |
+                  $PROCESS = await import("$MODULE");
+                  ...
+          - pattern-either:
+              - pattern: $PROCESS.exec($COMMAND, ...)
+              - pattern: $PROCESS.execSync($COMMAND, ...)
+              - pattern: "$PROCESS.spawn($COMMAND, {..., shell: true, ...})"
+              - pattern: "$PROCESS.spawnSync($COMMAND, {..., shell: true, ...})"
+              - pattern:
+                  "$PROCESS.spawn($COMMAND, $ARGS, {..., shell: true, ...})"
+              - pattern:
+                  "$PROCESS.spawnSync($COMMAND, $ARGS, {..., shell: true, ...})"
+              - patterns:
+                  - pattern-either:
+                      - pattern: $PROCESS.spawn($SHELL, [..., $COMMAND, ...], ...)
+                      - pattern:
+                          $PROCESS.spawnSync($SHELL, [..., $COMMAND, ...], ...)
+                      - pattern:
+                          $PROCESS.execFile($SHELL, [..., $COMMAND, ...], ...)
+                      - pattern:
+                          $PROCESS.execFileSync($SHELL, [..., $COMMAND, ...], ...)
+                  - metavariable-regex:
+                      metavariable: $SHELL
+                      regex: '^(?i)["''](?:/(?:usr/)?bin/)?(?:sh|bash|dash|zsh|ksh|cmd|cmd\.exe|powershell|powershell\.exe|pwsh)["'']$'
+          - metavariable-regex:
+              metavariable: $MODULE
+              regex: ^(?:node:)?child_process$
+          - focus-metavariable: $COMMAND
+      - patterns:
+          - pattern-inside: |
+              const {..., $FUNCTION, ...} = await import("$MODULE");
+              ...
+          - pattern-either:
+              - patterns:
+                  - pattern: $FUNCTION($COMMAND, ...)
+                  - metavariable-regex:
+                      metavariable: $FUNCTION
+                      regex: ^exec(?:Sync)?$
+              - patterns:
+                  - pattern-either:
+                      - pattern: "$FUNCTION($COMMAND, {..., shell: true, ...})"
+                      - pattern:
+                          "$FUNCTION($COMMAND, $ARGS, {..., shell: true, ...})"
+                  - metavariable-regex:
+                      metavariable: $FUNCTION
+                      regex: ^spawn(?:Sync)?$
+              - patterns:
+                  - pattern: $FUNCTION($SHELL, [..., $COMMAND, ...], ...)
+                  - metavariable-regex:
+                      metavariable: $FUNCTION
+                      regex: ^(?:spawn|execFile)(?:Sync)?$
+                  - metavariable-regex:
+                      metavariable: $SHELL
+                      regex: '^(?i)["''](?:/(?:usr/)?bin/)?(?:sh|bash|dash|zsh|ksh|cmd|cmd\.exe|powershell|powershell\.exe|pwsh)["'']$'
+          - metavariable-regex:
+              metavariable: $MODULE
+              regex: ^(?:node:)?child_process$
+          - focus-metavariable: $COMMAND

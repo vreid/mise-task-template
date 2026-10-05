@@ -99,13 +99,14 @@ helpers safe. Environment variables are deliberately treated as untrusted;
 applications with a trusted deployment-only source can record a narrow,
 justified exception.
 
-Opengrep does not resolve TypeScript default imports to their module, and
-several TypeScript sinks are spelled with a conventional identifier. Verified
-misses on 2026-10-05: `import cp from "node:child_process"` with `cp.exec`;
-`createHash("md5")` after a named import, or through a namespace or default
-import not called `crypto`; and an axios default import under another name. A
-default `fs` import is caught only for read calls on an identifier named `fs` or
-`fsp`.
+TypeScript module sinks (`child_process`, `fs`, `crypto`, axios) are recognized
+whatever the local name, through namespace, named, aliased, default, `require`,
+and awaited dynamic imports, including destructured ones. Opengrep resolves
+namespace, named, aliased, and `require` imports to their module itself; for
+default and dynamic imports the rules match the import statement. Fixtures cover
+each added form, and a probe of the same calls on an unrelated module or with
+constant arguments found no findings. Weak hashes include `md4`, `md5`, and
+`sha1` in any case, with or without an `RSA-` prefix.
 
 The `unsafe-security.yml` checks require modern hashes and certificate
 verification. A legacy non-security checksum can use a named exception with a
@@ -117,10 +118,10 @@ safe regression fixture.
 `security/tests` mirrors the language directories in `security/rules`, with
 fixtures paired by basename with each YAML rule. Every language has an expected
 unsafe flow (`ruleid:`), a safe argument list (`ok:`), and a constant shell
-command (`ok:`). TypeScript additionally tests import aliases, namespace
-imports, an unrelated API with the same method name, and an `.mts` file. These
-are source fixtures, not runnable demonstrations: no task compiles or executes
-them.
+command (`ok:`). TypeScript additionally tests import aliases, namespace,
+default, and dynamic imports, an unrelated API with the same method name, and
+`.mts` files. These are source fixtures, not runnable demonstrations: no task
+compiles or executes them.
 
 The native `opengrep scan --test` runner verifies expected findings and rejects
 unexpected ones. Only the normal repository scan excludes this fixture

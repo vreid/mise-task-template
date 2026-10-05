@@ -117,6 +117,66 @@
                   { "focus-metavariable": "$INPUT" },
                 ],
             },
+            {
+              "patterns":
+                [
+                  {
+                    "pattern-either":
+                      [
+                        {
+                          "pattern-inside":
+                            "import $LIBRARY from \"$MODULE\";\n...\n",
+                        },
+                        {
+                          "pattern-inside":
+                            "$LIBRARY = await import(\"$MODULE\");\n...\n",
+                        },
+                      ],
+                  },
+                  { "pattern": "$LIBRARY.$FUNCTION($INPUT, ...)" },
+                  {
+                    "metavariable-regex":
+                      {
+                        "metavariable": "$MODULE",
+                        "regex": "^(?:node:)?fs(?:/promises)?$",
+                      },
+                  },
+                  {
+                    "metavariable-regex":
+                      {
+                        "metavariable": "$FUNCTION",
+                        "regex": "^(?:readFile|writeFile|appendFile|open|unlink|rm|readdir|stat|createReadStream|createWriteStream)(?:Sync)?$",
+                      },
+                  },
+                  { "focus-metavariable": "$INPUT" },
+                ],
+            },
+            {
+              "patterns":
+                [
+                  {
+                    "pattern-inside":
+                      "const {..., $FUNCTION, ...} = await
+                      import(\"$MODULE\");\n...\n",
+                  },
+                  { "pattern": "$FUNCTION($INPUT, ...)" },
+                  {
+                    "metavariable-regex":
+                      {
+                        "metavariable": "$MODULE",
+                        "regex": "^(?:node:)?fs(?:/promises)?$",
+                      },
+                  },
+                  {
+                    "metavariable-regex":
+                      {
+                        "metavariable": "$FUNCTION",
+                        "regex": "^(?:readFile|writeFile|appendFile|open|unlink|rm|readdir|stat|createReadStream|createWriteStream)(?:Sync)?$",
+                      },
+                  },
+                  { "focus-metavariable": "$INPUT" },
+                ],
+            },
           ],
       },
       {
@@ -161,6 +221,54 @@
                         { "pattern": "fetch($INPUT, ...)" },
                         { "pattern": "axios.get($INPUT, ...)" },
                       ],
+                  },
+                  { "focus-metavariable": "$INPUT" },
+                ],
+            },
+            {
+              "patterns":
+                [
+                  {
+                    "pattern-either":
+                      [
+                        {
+                          "pattern-inside":
+                            "import $LIBRARY from \"$MODULE\";\n...\n",
+                        },
+                        {
+                          "pattern-inside":
+                            "$LIBRARY = await import(\"$MODULE\");\n...\n",
+                        },
+                      ],
+                  },
+                  { "pattern": "$LIBRARY.$FUNCTION($INPUT, ...)" },
+                  {
+                    "metavariable-regex":
+                      { "metavariable": "$MODULE", "regex": "^axios$" },
+                  },
+                  {
+                    "metavariable-regex":
+                      { "metavariable": "$FUNCTION", "regex": "^get$" },
+                  },
+                  { "focus-metavariable": "$INPUT" },
+                ],
+            },
+            {
+              "patterns":
+                [
+                  {
+                    "pattern-inside":
+                      "const {..., $FUNCTION, ...} = await
+                      import(\"$MODULE\");\n...\n",
+                  },
+                  { "pattern": "$FUNCTION($INPUT, ...)" },
+                  {
+                    "metavariable-regex":
+                      { "metavariable": "$MODULE", "regex": "^axios$" },
+                  },
+                  {
+                    "metavariable-regex":
+                      { "metavariable": "$FUNCTION", "regex": "^get$" },
                   },
                   { "focus-metavariable": "$INPUT" },
                 ],
