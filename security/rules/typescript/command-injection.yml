@@ -68,13 +68,15 @@ rules:
                   "$PROCESS.spawnSync($COMMAND, $ARGS, {..., shell: true, ...})"
               - patterns:
                   - pattern-either:
-                      - pattern: $PROCESS.spawn($SHELL, [..., $COMMAND, ...], ...)
+                      - pattern:
+                          $PROCESS.spawn($SHELL, [..., $COMMAND, ...], ...)
                       - pattern:
                           $PROCESS.spawnSync($SHELL, [..., $COMMAND, ...], ...)
                       - pattern:
                           $PROCESS.execFile($SHELL, [..., $COMMAND, ...], ...)
                       - pattern:
-                          $PROCESS.execFileSync($SHELL, [..., $COMMAND, ...], ...)
+                          $PROCESS.execFileSync($SHELL, [..., $COMMAND, ...],
+                          ...)
                   - metavariable-regex:
                       metavariable: $SHELL
                       regex: '^(?i)["''](?:/(?:usr/)?bin/)?(?:sh|bash|dash|zsh|ksh|cmd|cmd\.exe|powershell|powershell\.exe|pwsh)["'']$'
