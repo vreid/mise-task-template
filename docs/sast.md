@@ -6,7 +6,10 @@ have positive and negative fixtures in all seven languages. Unescaped HTML has
 fixtures in TypeScript, Python, Go, C#, and Rust. Additional rules cover weak
 hashes and disabled TLS verification in TypeScript, Rust, C, and C++.
 
-The [coverage matrix](owasp-cwe-coverage.md) distinguishes proven API patterns,
+A [measured comparison](sast-comparison.md) with CodeQL, the Clang static
+analyzer, and the language linters shows where these rules stop: they follow
+data within a function, not through helpers or across files. The
+[coverage matrix](owasp-cwe-coverage.md) distinguishes proven API patterns,
 language guarantees, analyzer rules, runtime checks, and application-specific
 review. This is broader coverage of the OWASP Top 10 and CWE Top 25, not a
 promise to recognize every vulnerability or framework.
