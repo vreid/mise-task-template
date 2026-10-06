@@ -39,6 +39,7 @@
     "**/dist",
     "**/build",
     "**/coverage",
+    "security/comparison",
     "security/tests/**/data-injection.*",
     "security/tests/**/unsafe-security.*"
   ]

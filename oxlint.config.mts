@@ -4,6 +4,8 @@ export default {
   // Deliberately weak code; scripts/linter-fixtures.test.mts lints it explicitly.
   ignorePatterns: [
     "security/linter-tests/**",
+    // Deliberately unsafe; scripts/compare-sast.sh analyzes it explicitly.
+    "security/comparison/**",
     "security/tests/**/data-injection.*",
     "security/tests/**/unsafe-security.*",
   ],

@@ -1,0 +1,58 @@
+# Evaluation, not a gate: compares the repository's analyzers with CodeQL on
+# security/comparison, on demand and when the corpus, rules, or harness change. CodeQL is not part of the toolchain; its license permits
+# analysis of this open-source repository. See docs/sast-comparison.md.
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - security/comparison/**
+      - security/rules/**
+      - scripts/compare-sast*
+      - .github/workflows/sast-comparison.yml
+
+permissions:
+  contents: read
+
+jobs:
+  compare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: bash
+    env:
+      CODEQL_BUNDLE: codeql-bundle-v2.27.1
+      CODEQL_SHA256: 1ec99cfa9420f04c2330784b4ddb8363a0dd67c3e4471cd93963c50e6c433717
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca # v5.1.1
+        with:
+          version: "2026.10.0"
+          install_args: --locked
+          # Rust's toolchain lives outside mise's default cache directory.
+          cache: false
+
+      - name: Install CodeQL
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "$CODEQL_BUNDLE" --repo github/codeql-action \
+            --pattern codeql-bundle-linux64.tar.zst --dir "$RUNNER_TEMP"
+          echo "$CODEQL_SHA256  $RUNNER_TEMP/codeql-bundle-linux64.tar.zst" |
+            sha256sum --check
+          tar --zstd -xf "$RUNNER_TEMP/codeql-bundle-linux64.tar.zst" \
+            -C "$RUNNER_TEMP"
+
+      - run: task check:sast-comparison CODEQL="$RUNNER_TEMP/codeql/codeql"
+
+      # Three-day retention is the accepted PoC policy.
+      - if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: sast-comparison-${{ github.sha }}
+          path: reports/comparison/
+          retention-days: 3
+          if-no-files-found: error
