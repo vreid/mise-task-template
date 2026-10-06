@@ -72,11 +72,16 @@ takes someone who reads, runs, and verifies, at the cost of a seat.
 - **Push protection** blocks a secret before it reaches GitHub. This repository
   catches secrets in a pre-commit hook, which can be bypassed, and in CI, after
   the push.
-- **CodeQL** performs deeper data-flow analysis than the single Opengrep rule
-  here, for all seven example languages. Its default threat model treats only
-  remote input as untrusted. Environment variables and arguments count only with
-  the local threat model, in preview for Java/Kotlin and C#. Coverage still has
-  to be configured and verified.
+- **CodeQL** follows data through helpers and across files, which the 41
+  Opengrep rules here do not. In the [measured comparison](sast-comparison.md)
+  it found all 70 unsafe test programs, including 28 cross-file cases, and
+  flagged 6 of 28 safe ones. Among the free tools, only the Clang static
+  analyzer traced data across files, for C and C++ command injection; pattern
+  linters flagged some cross-file cases only because they flag the safe ones
+  too. CodeQL's default threat model treats only remote input as untrusted and
+  found 25 of 70; command-line programs need the local threat model. Published
+  studies on real code report low detection rates for CodeQL as for every other
+  tool, so coverage still has to be configured and verified.
 - **Findings management** tracks alert states, dismissal reasons, trends, and
   merge blocking on results. That covers open requirements such as observable
   results and trends. A self-hosted platform such as SecObserve or
