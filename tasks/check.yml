@@ -163,6 +163,17 @@ tasks:
     cmds:
       - bash scripts/check-new.sh
 
+  sast-comparison:
+    desc:
+      Compare the analyzers with CodeQL on security/comparison (CODEQL=path to
+      the CodeQL CLI); write reports/comparison
+    requires:
+      vars: [CODEQL]
+    env:
+      CODEQL_CLI: "{{.CODEQL}}"
+    cmds:
+      - CODEQL="$CODEQL_CLI" bash scripts/compare-sast.sh
+
   findings:
     desc: Classify all reported findings as high, medium, or low
     cmds:

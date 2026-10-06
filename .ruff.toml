@@ -6,6 +6,7 @@ extend-exclude = [
   "build",
   "coverage",
   "security/linter-tests",
+  "security/comparison",
   "security/tests/python/data-injection.py",
 ]
 
