@@ -100,4 +100,5 @@ argued in [security spend](docs/security-spend.md).
 
 The [requirements handover](docs/requirements-handover.md) records the agreed
 PoC scope, requirement coverage, remaining work, and validation evidence for an
-independent review.
+independent review. The [requirements matrix](docs/requirements-matrix.md)
+translates each workshop requirement and lists the tools that cover it.
